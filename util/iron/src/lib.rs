@@ -1,7 +1,14 @@
+extern crate iron;
 #[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
-}
+extern crate iron_test;
+#[cfg(test)]
+extern crate router;
+
+extern crate prometheus;
+#[macro_use]
+extern crate slog;
+
+
+mod metrics;
+
+pub use self::metrics::MetricsMiddleware;

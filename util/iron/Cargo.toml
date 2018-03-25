@@ -17,3 +17,11 @@ maintenance = { status = "actively-developed" }
 
 
 [dependencies]
+iron = "^0.6.0"
+prometheus = "^0.3.13"
+slog = "^2.2.0"
+
+
+[dev-dependencies]
+iron-test = "^0.6.0"
+router = "^0.6.0"
