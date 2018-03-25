@@ -1,0 +1,19 @@
+[package]
+name = "replicante_util_iron"
+version = "0.1.0"
+authors = ["Stefano Pogliani <stefano@spogliani.net>"]
+
+description = "A collection of Iron middlewares"
+documentation = "https://docs.rs/replicante_util_iron"
+homepage = "https://www.replicante.io/"
+repository = "https://github.com/replicante-io/common"
+readme = "Readme.md"
+keywords = ["replicante", "utility", "iron"]
+license = "MIT"
+
+
+[badges]
+maintenance = { status = "actively-developed" }
+
+
+[dependencies]
