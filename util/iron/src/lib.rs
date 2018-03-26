@@ -4,7 +4,9 @@ extern crate iron_test;
 #[cfg(test)]
 extern crate router;
 
+extern crate opentracingrust;
 extern crate prometheus;
+
 #[macro_use]
 extern crate slog;
 
@@ -14,10 +16,12 @@ use iron::Response;
 
 mod logging;
 mod metrics;
+mod tracing;
 
 pub use self::logging::middleware::RequestLogger;
 pub use self::metrics::expose::MetricsHandler;
 pub use self::metrics::observe::MetricsMiddleware;
+pub use self::tracing::carrier::HeadersCarrier;
 
 
 /// Extracts the request method as a string.
