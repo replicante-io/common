@@ -7,8 +7,10 @@ use iron::BeforeMiddleware;
 
 use prometheus::Collector;
 use prometheus::CounterVec;
+use prometheus::HistogramOpts;
 use prometheus::HistogramTimer;
 use prometheus::HistogramVec;
+use prometheus::Opts;
 
 use slog::Logger;
 
@@ -28,6 +30,53 @@ pub struct MetricsMiddleware {
 }
 
 impl MetricsMiddleware {
+    /// Generates the metrics needed my the middleware.
+    ///
+    /// The three metrics returned `(duration, erorrs, requests)` are configured with the
+    /// minimum requirements to be passed to `MetricsMiddleware::new`.
+    ///
+    /// Metric names are prefixed with the given `prefix` and have the following attributes:
+    ///
+    ///   * Name: `<PEFIX>_endpoint_duration`.
+    ///     Description: Duration (in seconds) of HTTP endpoints.
+    ///     Static labels: none.
+    ///     Dynamic labels: method, path.
+    ///
+    ///   * Name: `<PEFIX>_endpoint_errors`.
+    ///     Description: Number of errors encountered while handling requests.
+    ///     Static labels: none.
+    ///     Dynamic labels: method, path.
+    ///
+    ///   * Name: `<PEFIX>_endpoint_requests`.
+    ///     Description: Unable to configure requests counter.
+    ///     Static labels: none.
+    ///     Dynamic labels: method, path, status.
+    pub fn metrics<S: Into<String>>(prefix: S) -> (HistogramVec, CounterVec, CounterVec) {
+        let prefix: String = prefix.into();
+        let duration = HistogramVec::new(
+            HistogramOpts::new(
+                format!("{}_endpoint_duration", prefix).as_str(),
+                "Duration (in seconds) of HTTP endpoints"
+            ),
+            &vec!["method", "path"]
+        ).expect("Unable to configure duration histogram");
+        let errors = CounterVec::new(
+            Opts::new(
+                format!("{}_endpoint_errors", prefix).as_str(),
+                "Number of errors encountered while handling requests"
+            ),
+            &vec!["method", "path"]
+        ).expect("Unable to configure errors counter");
+        let requests = CounterVec::new(
+            Opts::new(
+                format!("{}_endpoint_requests", prefix).as_str(),
+                "Number of requests processed"
+            ),
+            &vec!["method", "path", "status"]
+        ).expect("Unable to configure requests counter");
+        (duration, errors, requests)
+    }
+
     /// Constructs a new [`MetricsMiddleware`] to record metrics about handlers.
     ///
     /// The metrics to record observations in are passed to this method
@@ -232,6 +281,50 @@ mod tests {
 
     fn make_logger() -> Logger {
         Logger::root(Discard, o!())
+    }
+
+    mod metrics {
+        use prometheus::Collector;
+        use super::super::MetricsMiddleware;
+
+        #[test]
+        fn duration_attributes() {
+            let (duration, _, _) = MetricsMiddleware::metrics("test");
+            let descs = duration.desc();
+            assert_eq!(descs.len(), 1);
+            let desc = descs[0];
+            assert_eq!(desc.fq_name, "test_endpoint_duration");
+            assert_eq!(desc.const_label_pairs.len(), 0);
+            assert_eq!(desc.variable_labels, [
+                String::from("method"), String::from("path")
+            ]);
+        }
+
+        #[test]
+        fn errors_attributes() {
+            let (_, errors, _) = MetricsMiddleware::metrics("test");
+            let descs = errors.desc();
+            assert_eq!(descs.len(), 1);
+            let desc = descs[0];
+            assert_eq!(desc.fq_name, "test_endpoint_errors");
+            assert_eq!(desc.const_label_pairs.len(), 0);
+            assert_eq!(desc.variable_labels, [
+                String::from("method"), String::from("path")
+            ]);
+        }
+
+        #[test]
+        fn requests_attributes() {
+            let (_, _, requests) = MetricsMiddleware::metrics("test");
+            let descs = requests.desc();
+            assert_eq!(descs.len(), 1);
+            let desc = descs[0];
+            assert_eq!(desc.fq_name, "test_endpoint_requests");
+            assert_eq!(desc.const_label_pairs.len(), 0);
+            assert_eq!(desc.variable_labels, [
+                String::from("method"), String::from("path"), String::from("status")
+            ]);
+        }
     }
 
     mod observations {
