@@ -11,4 +11,5 @@ extern crate slog;
 
 mod metrics;
 
-pub use self::metrics::MetricsMiddleware;
+pub use self::metrics::expose::MetricsHandler;
+pub use self::metrics::observe::MetricsMiddleware;
