@@ -14,6 +14,10 @@ use prometheus::Opts;
 
 use slog::Logger;
 
+use super::super::request_method;
+use super::super::request_path;
+use super::super::response_status;
+
 
 /// An Iron middlewere to collect metrics about endpoints.
 ///
@@ -166,26 +170,6 @@ impl MetricsMiddleware {
     }
 }
 
-
-/// Extracts the request method as a string.
-fn request_method(request: &Request) -> String {
-    request.method.to_string()
-}
-
-
-/// Extracts the request path as a string.
-fn request_path(request: &Request) -> String {
-    format!("/{}", request.url.path().join("/"))
-}
-
-
-/// Extracts the response status code as a string.
-///
-/// # Panics
-/// If the response does not have a status set.
-fn response_status(response: &Response) -> String {
-    response.status.expect("Response instance does not have a status set").to_u16().to_string()
-}
 
 /// An Iron extension to store per-request metric data.
 struct MetricsExtension {
