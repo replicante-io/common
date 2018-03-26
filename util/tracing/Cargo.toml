@@ -1,0 +1,22 @@
+[package]
+name = "replicante_util_tracing"
+version = "0.1.0"
+authors = ["Stefano Pogliani <stefano@spogliani.net>"]
+
+description = "A collection of OpenTracing tools"
+documentation = "https://docs.rs/replicante_util_tracing"
+homepage = "https://www.replicante.io/"
+repository = "https://github.com/replicante-io/common"
+readme = "Readme.md"
+keywords = ["replicante", "utility", "opentracing"]
+license = "MIT"
+
+
+[badges]
+maintenance = { status = "actively-developed" }
+
+
+[dependencies]
+opentracingrust = "^0.3.1"
+serde = "^1.0.34"
+serde_derive = "^1.0.34"
