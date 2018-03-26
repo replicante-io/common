@@ -12,9 +12,10 @@ use iron::Request;
 use iron::Response;
 
 
-//mod logging;
+mod logging;
 mod metrics;
 
+pub use self::logging::middleware::RequestLogger;
 pub use self::metrics::expose::MetricsHandler;
 pub use self::metrics::observe::MetricsMiddleware;
 
