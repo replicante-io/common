@@ -16,23 +16,7 @@ pub enum Config {
     /// [Kafka]: https://kafka.apache.org/
     /// [Zipkin]: https://zipkin.io/
     #[serde(rename = "zipkin")]
-    Zipkin {
-        /// Value for the [Zipkin] service name field.
-        /// 
-        /// [Zipkin]: https://zipkin.io/
-        service_name: String,
-
-        /// List of URLs to seed the [Kafka] client.
-        ///
-        /// [Kafka]: https://kafka.apache.org/
-        kafka: Vec<String>,
-
-        /// [Kafka] topic to publish spans to (defaults to `zipkin`).
-        ///
-        /// [Kafka]: https://kafka.apache.org/
-        #[serde(default = "Config::default_zipkin_topic")]
-        topic: String,
-    },
+    Zipkin(ZipkinConfig),
 }
 
 impl Default for Config {
@@ -41,8 +25,29 @@ impl Default for Config {
     }
 }
 
-impl Config {
-    fn default_zipkin_topic() -> String { String::from("zipkin") }
+
+/// Zipkin specific configuration options.
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
+pub struct ZipkinConfig {
+    /// Value for the [Zipkin] service name field.
+    /// 
+    /// [Zipkin]: https://zipkin.io/
+    pub service_name: String,
+
+    /// List of URLs to seed the [Kafka] client.
+    ///
+    /// [Kafka]: https://kafka.apache.org/
+    pub kafka: Vec<String>,
+
+    /// [Kafka] topic to publish spans to (defaults to `zipkin`).
+    ///
+    /// [Kafka]: https://kafka.apache.org/
+    #[serde(default = "ZipkinConfig::default_topic")]
+    pub topic: String,
+}
+
+impl ZipkinConfig {
+    fn default_topic() -> String { String::from("zipkin") }
 }
 
 
@@ -70,6 +75,7 @@ mod tests {
     mod zipkin {
         use serde_yaml;
         use super::super::Config;
+        use super::super::ZipkinConfig;
 
         #[test]
         fn deserialise() {
@@ -81,11 +87,11 @@ options:
         - ghi
     topic: test"#;
             let config: Config = serde_yaml::from_str(text).unwrap();
-            assert_eq!(config, Config::Zipkin {
+            assert_eq!(config, Config::Zipkin(ZipkinConfig {
                 service_name: String::from("abc"),
                 kafka: vec![String::from("def"), String::from("ghi")],
                 topic: String::from("test"),
-            });
+            }));
         }
 
         #[test]
@@ -97,11 +103,11 @@ options:
         - def
         - ghi"#;
             let config: Config = serde_yaml::from_str(text).unwrap();
-            assert_eq!(config, Config::Zipkin {
+            assert_eq!(config, Config::Zipkin(ZipkinConfig {
                 service_name: String::from("abc"),
                 kafka: vec![String::from("def"), String::from("ghi")],
                 topic: String::from("zipkin"),
-            });
+            }));
         }
 
         #[test]
@@ -115,11 +121,11 @@ options:
 
         #[test]
         fn serialise() {
-            let config = Config::Zipkin {
+            let config = Config::Zipkin(ZipkinConfig {
                 service_name: String::from("abc"),
                 kafka: vec![String::from("def"), String::from("ghi")],
                 topic: String::from("test"),
-            };
+            });
             let text = serde_yaml::to_string(&config).unwrap();
             assert_eq!(text, r#"---
 backend: zipkin

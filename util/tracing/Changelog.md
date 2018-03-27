@@ -6,4 +6,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 ### Added
-- Supported tracing backends enum.
+- Tracers configuration
+- Support for noop tracer
+- Support for zipkin tracer
