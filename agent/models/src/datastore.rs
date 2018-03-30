@@ -7,11 +7,15 @@ pub struct DatastoreInfo {
 }
 
 impl DatastoreInfo {
-    pub fn new(kind: &str, name: &str, version: &str) -> DatastoreInfo {
+    pub fn new<S1, S2, S3>(kind: S1, name: S2, version: S3) -> DatastoreInfo
+        where S1: Into<String>,
+              S2: Into<String>,
+              S3: Into<String>,
+    {
         DatastoreInfo {
-            kind: String::from(kind),
-            name: String::from(name),
-            version: String::from(version),
+            kind: kind.into(),
+            name: name.into(),
+            version: version.into(),
         }
     }
 }

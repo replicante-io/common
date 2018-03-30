@@ -20,11 +20,15 @@ pub struct AgentVersion {
 }
 
 impl AgentVersion {
-    pub fn new(checkout: &str, number: &str, taint: &str) -> AgentVersion {
+    pub fn new<S1, S2, S3>(checkout: S1, number: S2, taint: S3) -> AgentVersion
+        where S1: Into<String>,
+              S2: Into<String>,
+              S3: Into<String>,
+    {
         AgentVersion {
-            checkout: String::from(checkout),
-            number: String::from(number),
-            taint: String::from(taint)
+            checkout: checkout.into(),
+            number: number.into(),
+            taint: taint.into(),
         }
     }
 }

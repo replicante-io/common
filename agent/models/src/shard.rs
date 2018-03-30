@@ -8,10 +8,12 @@ pub struct Shard {
 }
 
 impl Shard {
-    pub fn new(id: &str, role: ShardRole, lag: Option<i64>, last_op: i64) -> Shard {
+    pub fn new<S>(id: S, role: ShardRole, lag: Option<i64>, last_op: i64) -> Shard
+        where S: Into<String>,
+    {
         Shard {
-            id: String::from(id),
-            role, lag, last_op
+            id: id.into(),
+            role, lag, last_op,
         }
     }
 }
