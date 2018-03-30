@@ -1,5 +1,6 @@
 [workspace]
 members = [
+  "agent/models",
   "util/iron",
   "util/tracing",
 ]
