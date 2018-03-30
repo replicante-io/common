@@ -10,6 +10,7 @@ mod datastore;
 mod shard;
 
 
+pub use self::agent::AgentDetails;
 pub use self::agent::AgentInfo;
 pub use self::agent::AgentVersion;
 pub use self::datastore::DatastoreInfo;
