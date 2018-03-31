@@ -6,8 +6,8 @@ use super::shard::Shard;
 /// Agent and datastore information.
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
 pub struct NodeInfo {
-    agent: AgentInfo,
-    datastore: DatastoreInfo,
+    pub agent: AgentInfo,
+    pub datastore: DatastoreInfo,
 }
 
 impl NodeInfo {
@@ -20,7 +20,7 @@ impl NodeInfo {
 /// Datastore status information.
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
 pub struct NodeStatus {
-    shards: Vec<Shard>,
+    pub shards: Vec<Shard>,
 }
 
 impl NodeStatus {

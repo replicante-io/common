@@ -1,9 +1,9 @@
 /// Datastore version details.
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
 pub struct DatastoreInfo {
-    kind: String,
-    name: String,
-    version: String,
+    pub kind: String,
+    pub name: String,
+    pub version: String,
 }
 
 impl DatastoreInfo {

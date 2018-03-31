@@ -1,10 +1,10 @@
 /// Information about a shard on a node.
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
 pub struct Shard {
-    id: String,
-    role: ShardRole,
-    lag: Option<i64>,
-    last_op: i64,
+    pub id: String,
+    pub role: ShardRole,
+    pub lag: Option<i64>,
+    pub last_op: i64,
 }
 
 impl Shard {
