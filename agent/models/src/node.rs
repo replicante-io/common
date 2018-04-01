@@ -41,10 +41,10 @@ mod tests {
 
         #[test]
         fn from_json() {
-            let payload = r#"{"agent":{"version":{"checkout":"abc123","number":"1.2.3","taint":"tainted"}},"datastore":{"kind":"DB","name":"Name","version":"1.2.3"}}"#;
+            let payload = r#"{"agent":{"version":{"checkout":"abc123","number":"1.2.3","taint":"tainted"}},"datastore":{"cluster":"cluster","kind":"DB","name":"Name","version":"1.2.3"}}"#;
             let info: NodeInfo = serde_json::from_str(payload).unwrap();
             let agent = AgentInfo::new(AgentVersion::new("abc123", "1.2.3", "tainted"));
-            let datastore = DatastoreInfo::new("DB", "Name", "1.2.3");
+            let datastore = DatastoreInfo::new("cluster", "DB", "Name", "1.2.3");
             let expected = NodeInfo::new(agent, datastore);
             assert_eq!(info, expected);
         }
@@ -52,10 +52,10 @@ mod tests {
         #[test]
         fn to_json() {
             let agent = AgentInfo::new(AgentVersion::new("abc123", "1.2.3", "tainted"));
-            let datastore = DatastoreInfo::new("DB", "Name", "1.2.3");
+            let datastore = DatastoreInfo::new("cluster", "DB", "Name", "1.2.3");
             let info = NodeInfo::new(agent, datastore);
             let payload = serde_json::to_string(&info).unwrap();
-            let expected = r#"{"agent":{"version":{"checkout":"abc123","number":"1.2.3","taint":"tainted"}},"datastore":{"kind":"DB","name":"Name","version":"1.2.3"}}"#;
+            let expected = r#"{"agent":{"version":{"checkout":"abc123","number":"1.2.3","taint":"tainted"}},"datastore":{"cluster":"cluster","kind":"DB","name":"Name","version":"1.2.3"}}"#;
             assert_eq!(payload, expected);
         }
     }

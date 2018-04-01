@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 ### Added
-- Agent info and version models.
-- Datastore info and status model.
-- Shard info model.
-- Shard role enum.
+- Agent info and version models
+- Datastore info and status model
+- Shard info model
+- Shard role enum
