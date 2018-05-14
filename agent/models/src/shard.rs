@@ -19,6 +19,19 @@ impl Shard {
 }
 
 
+/// Information about shards on a node.
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
+pub struct Shards {
+    pub shards: Vec<Shard>,
+}
+
+impl Shards {
+    pub fn new(shards: Vec<Shard>) -> Shards {
+        Shards { shards }
+    }
+}
+
+
 /// Possible shard roles.
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
 pub enum ShardRole {
