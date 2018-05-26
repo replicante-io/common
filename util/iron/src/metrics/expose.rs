@@ -74,7 +74,7 @@ mod tests {
     #[test]
     fn metrics_data() {
         let count = Counter::new("name", "desc").unwrap();
-        count.inc_by(2.0).unwrap();
+        count.inc_by(2.0);
 
         let registry = Registry::new();
         registry.register(Box::new(count)).unwrap();

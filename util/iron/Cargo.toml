@@ -19,7 +19,7 @@ maintenance = { status = "actively-developed" }
 [dependencies]
 iron = "^0.6.0"
 opentracingrust = "^0.3.1"
-prometheus = "^0.3.13"
+prometheus = "^0.4.1"
 slog = "^2.2.0"
 
 

@@ -5,12 +5,12 @@ use iron::typemap::Key;
 use iron::AfterMiddleware;
 use iron::BeforeMiddleware;
 
-use prometheus::Collector;
 use prometheus::CounterVec;
 use prometheus::HistogramOpts;
 use prometheus::HistogramTimer;
 use prometheus::HistogramVec;
 use prometheus::Opts;
+use prometheus::core::Collector;
 
 use slog::Logger;
 
@@ -268,7 +268,7 @@ mod tests {
     }
 
     mod metrics {
-        use prometheus::Collector;
+        use prometheus::core::Collector;
         use super::super::MetricsMiddleware;
 
         #[test]
@@ -320,11 +320,11 @@ mod tests {
         use iron_test::request;
         use router::Router;
 
-        use prometheus::Collector;
         use prometheus::CounterVec;
         use prometheus::HistogramOpts;
         use prometheus::HistogramVec;
         use prometheus::Opts;
+        use prometheus::core::Collector;
 
         use super::super::MetricsMiddleware;
         use super::make_logger;
