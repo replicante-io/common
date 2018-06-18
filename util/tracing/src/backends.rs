@@ -31,12 +31,9 @@ pub fn zipkin(config: ZipkinConfig, logger: Logger) -> Result<(Tracer, TracerExt
     );
     let (tracer, receiver) = ZipkinTracer::new();
     let reporter = ReporterThread::new(receiver, move |span| {
-        match collector.collect(span) {
-            Err(err) => {
-                let err = format!("{:?}", err);
-                error!(logger, "ZipkinTracer failed to report span"; "error" => err);
-            },
-            _ => (),
+        if let Err(err) = collector.collect(span) {
+            let err = format!("{:?}", err);
+            error!(logger, "ZipkinTracer failed to report span"; "error" => err);
         }
     });
     Ok((tracer, TracerExtra::ReporterThread(reporter)))

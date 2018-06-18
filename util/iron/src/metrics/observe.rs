@@ -62,21 +62,21 @@ impl MetricsMiddleware {
                 format!("{}_endpoint_duration", prefix).as_str(),
                 "Duration (in seconds) of HTTP endpoints"
             ),
-            &vec!["method", "path"]
+            &["method", "path"]
         ).expect("Unable to configure duration histogram");
         let errors = CounterVec::new(
             Opts::new(
                 format!("{}_endpoint_errors", prefix).as_str(),
                 "Number of errors encountered while handling requests"
             ),
-            &vec!["method", "path"]
+            &["method", "path"]
         ).expect("Unable to configure errors counter");
         let requests = CounterVec::new(
             Opts::new(
                 format!("{}_endpoint_requests", prefix).as_str(),
                 "Number of requests processed"
             ),
-            &vec!["method", "path", "status"]
+            &["method", "path", "status"]
         ).expect("Unable to configure requests counter");
         (duration, errors, requests)
     }
