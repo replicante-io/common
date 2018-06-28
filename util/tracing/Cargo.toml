@@ -7,7 +7,7 @@ description = "A collection of OpenTracing tools"
 documentation = "https://docs.rs/replicante_util_tracing"
 homepage = "https://www.replicante.io/"
 repository = "https://github.com/replicante-io/common"
-readme = "README.md"
+readme = "../../README.md"
 keywords = ["replicante", "utility", "opentracing"]
 license = "MIT"
 
