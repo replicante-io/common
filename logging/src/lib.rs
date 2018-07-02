@@ -45,7 +45,7 @@ use decorator::decorate;
 ///
 /// [`Drain`]: slog/trait.Drain.html
 /// [`Logger`]: slog/struct.Logger.html
-pub fn configure(config: Config, opts: Opts) -> Logger {
+pub fn configure(config: Config, opts: &Opts) -> Logger {
     match config.backend {
         #[cfg(feature = "journald")]
         LoggingBackend::Journald => decorate(config, opts, JournaldDrain.ignore_res()),
@@ -64,7 +64,7 @@ pub fn configure(config: Config, opts: Opts) -> Logger {
 /// Creates a fixed [`Logger`] to be used until configuration is loaded.
 ///
 /// [`Logger`]: slog/struct.Logger.html
-pub fn starter(opts: Opts) -> Logger {
+pub fn starter(opts: &Opts) -> Logger {
     let drain = Json::new(stdout())
         .add_default_keys()
         .add_key_value(o!("module" => FnValue(|rinfo : &Record| rinfo.module())))

@@ -15,7 +15,7 @@ use super::into_logger;
 ///
 /// [`Async`]: slog_async/struct.Async.html
 #[cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value))]
-pub fn async<D>(config: Config, opts: Opts, drain: D) -> Logger
+pub fn async<D>(config: Config, opts: &Opts, drain: D) -> Logger
     where D: SendSyncUnwindSafeDrain<Ok = (), Err = Never>,
           D: 'static + SendSyncRefUnwindSafeDrain<Ok = (), Err = Never>, 
 {

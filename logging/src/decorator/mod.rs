@@ -12,7 +12,7 @@ mod level;
 
 
 /// Apply decorators to the drain.
-pub fn decorate<D>(config: Config, opts: Opts, drain: D) -> Logger
+pub fn decorate<D>(config: Config, opts: &Opts, drain: D) -> Logger
     where D: SendSyncUnwindSafeDrain<Ok = (), Err = Never>,
           D: 'static + SendSyncRefUnwindSafeDrain<Ok = (), Err = Never>,
 {
@@ -25,11 +25,11 @@ pub fn decorate<D>(config: Config, opts: Opts, drain: D) -> Logger
 ///
 /// [`Drain`]: slog/trait.Drain.html
 /// [`Logger`]: slog/struct.Logger.html
-pub fn into_logger<D>(opts: Opts, drain: D) -> Logger
+pub fn into_logger<D>(opts: &Opts, drain: D) -> Logger
     where D: SendSyncUnwindSafeDrain<Ok = (), Err = Never>,
           D: 'static + SendSyncRefUnwindSafeDrain<Ok = (), Err = Never>,
 {
     Logger::root(drain, o!(
-        "version" => opts.version,
+        "version" => opts.version.clone(),
     ))
 }
