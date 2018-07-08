@@ -78,6 +78,12 @@ pub enum LoggingLevel {
 }
 
 impl Default for LoggingLevel {
+    #[cfg(debug_assertions)]
+    fn default() -> LoggingLevel {
+        LoggingLevel::Debug
+    }
+
+    #[cfg(not(debug_assertions))]
     fn default() -> LoggingLevel {
         LoggingLevel::Info
     }
