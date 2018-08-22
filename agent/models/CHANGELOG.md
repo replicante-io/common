@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- **BREAKING**: Replaced shard's `last_op` with a `commit_offset`.
+- **BREAKING**: Replication lag has a unit (no longer assumed to be seconds).
 
 ## [0.1.1] - 2018-06-28
 ### Fixed
