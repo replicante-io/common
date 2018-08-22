@@ -26,4 +26,4 @@ slog = "^2.2.1"
 
 
 [dev-dependencies]
-serde_yaml = "^0.7.3"
+serde_yaml = "^0.8.0"
