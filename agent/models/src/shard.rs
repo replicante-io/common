@@ -80,8 +80,13 @@ impl Shards {
 /// Possible shard roles.
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
 pub enum ShardRole {
+    #[serde(rename = "primary")]
     Primary,
+
+    #[serde(rename = "secondary")]
     Secondary,
+
+    #[serde(rename = "unknown")]
     Unknown(String)
 }
 
@@ -97,7 +102,7 @@ mod tests {
     fn primary_from_json() {
         let payload = concat!(
             r#"{"commit_offset":{"unit":"seconds","value":12345},"id":"shard-1","#,
-            r#""lag":{"unit":"seconds","value":0},"role":"Primary"}"#
+            r#""lag":{"unit":"seconds","value":0},"role":"primary"}"#
         );
         let shard: Shard = serde_json::from_str(payload).unwrap();
         let expected = Shard::new(
@@ -118,7 +123,7 @@ mod tests {
         let payload = serde_json::to_string(&shard).unwrap();
         let expected = concat!(
             r#"{"commit_offset":{"unit":"seconds","value":12345},"id":"shard-1","#,
-            r#""lag":{"unit":"seconds","value":0},"role":"Primary"}"#
+            r#""lag":{"unit":"seconds","value":0},"role":"primary"}"#
         );
         assert_eq!(payload, expected);
     }
@@ -127,7 +132,7 @@ mod tests {
     fn unkown_from_json() {
         let payload = concat!(
             r#"{"commit_offset":{"unit":"seconds","value":12345},"id":"shard-1","#,
-            r#""lag":{"unit":"seconds","value":0},"role":{"Unknown":"Test"}}"#
+            r#""lag":{"unit":"seconds","value":0},"role":{"unknown":"Test"}}"#
         );
         let shard: Shard = serde_json::from_str(payload).unwrap();
         let expected = Shard::new(
@@ -148,7 +153,7 @@ mod tests {
         let payload = serde_json::to_string(&shard).unwrap();
         let expected = concat!(
             r#"{"commit_offset":{"unit":"seconds","value":12345},"id":"shard-1","#,
-            r#""lag":{"unit":"seconds","value":0},"role":{"Unknown":"Test"}}"#
+            r#""lag":{"unit":"seconds","value":0},"role":{"unknown":"Test"}}"#
         );
         assert_eq!(payload, expected);
     }
@@ -157,7 +162,7 @@ mod tests {
     fn missing_commit_offset_from_json() {
         let payload = concat!(
             r#"{"id":"shard-1","#,
-            r#""lag":{"unit":{"unit":"offset"},"value":0},"role":{"Unknown":"Test"}}"#
+            r#""lag":{"unit":{"unit":"offset"},"value":0},"role":{"unknown":"Test"}}"#
         );
         let shard: Shard = serde_json::from_str(payload).unwrap();
         let expected = Shard::new(
@@ -171,7 +176,7 @@ mod tests {
     fn missing_lag_from_json() {
         let payload = concat!(
             r#"{"commit_offset":{"unit":"seconds","value":12345},"id":"shard-1","#,
-            r#""role":{"Unknown":"Test"}}"#
+            r#""role":{"unknown":"Test"}}"#
         );
         let shard: Shard = serde_json::from_str(payload).unwrap();
         let expected = Shard::new(
@@ -185,7 +190,7 @@ mod tests {
     fn no_commit_offset_from_json() {
         let payload = concat!(
             r#"{"commit_offset":null,"id":"shard-1","#,
-            r#""lag":{"unit":"seconds","value":0},"role":{"Unknown":"Test"}}"#
+            r#""lag":{"unit":"seconds","value":0},"role":{"unknown":"Test"}}"#
         );
         let shard: Shard = serde_json::from_str(payload).unwrap();
         let expected = Shard::new(
@@ -199,7 +204,7 @@ mod tests {
     fn no_lag_from_json() {
         let payload = concat!(
             r#"{"commit_offset":{"unit":"seconds","value":12345},"id":"shard-1","#,
-            r#""lag":null,"role":{"Unknown":"Test"}}"#
+            r#""lag":null,"role":{"unknown":"Test"}}"#
         );
         let shard: Shard = serde_json::from_str(payload).unwrap();
         let expected = Shard::new(
@@ -218,7 +223,7 @@ mod tests {
         let payload = serde_json::to_string(&shard).unwrap();
         let expected = concat!(
             r#"{"commit_offset":null,"id":"shard-1","#,
-            r#""lag":{"unit":"seconds","value":0},"role":"Primary"}"#
+            r#""lag":{"unit":"seconds","value":0},"role":"primary"}"#
         );
         assert_eq!(payload, expected);
     }
@@ -232,7 +237,7 @@ mod tests {
         let payload = serde_json::to_string(&shard).unwrap();
         let expected = concat!(
             r#"{"commit_offset":{"unit":"seconds","value":12345},"id":"shard-1","#,
-            r#""lag":null,"role":"Primary"}"#
+            r#""lag":null,"role":"primary"}"#
         );
         assert_eq!(payload, expected);
     }

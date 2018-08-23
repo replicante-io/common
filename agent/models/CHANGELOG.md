@@ -6,8 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 ### Changed
-- **BREAKING**: Replaced shard's `last_op` with a `commit_offset`.
-- **BREAKING**: Replication lag has a unit (no longer assumed to be seconds).
+- **BREAKING**: Encode shard roles as lower case strings
+- **BREAKING**: Replaced shard's `last_op` with a `commit_offset`
+- **BREAKING**: Replication lag has a unit (no longer assumed to be seconds)
 
 ## [0.1.1] - 2018-06-28
 ### Fixed
