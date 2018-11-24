@@ -3,5 +3,6 @@ members = [
   "agent/models",
   "logging",
   "util/iron",
+  "util/rndid",
   "util/tracing",
 ]
