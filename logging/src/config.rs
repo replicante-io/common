@@ -1,3 +1,6 @@
+use std::collections::BTreeMap;
+
+
 /// Logging configuration options.
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -13,6 +16,25 @@ pub struct Config {
     /// The minimum logging level.
     #[serde(default)]
     pub level: LoggingLevel,
+
+    /// Advanced level configuration by module prefix.
+    ///
+    /// The keys in this map are used as prefix matches against log event modules.
+    /// If a match is found the mapped level is used for the event.
+    /// If no match is found the `level` value is used as the filter.
+    #[serde(default)]
+    pub modules: BTreeMap<String, LoggingLevel>,
+
+    /// Enable verbose debug logs.
+    ///
+    /// When DEBUG level is enbabled, things can get loud pretty easily.
+    /// To allow DEBUG level to be more usefull, only application events are emitted at
+    /// DEBUG level while dependency events are emitted at INFO level.
+    ///
+    /// Verbose mode can be used in cases where DEBUG level should be enabled by default
+    /// on all events and not just the application logs.
+    #[serde(default = "Config::default_verbose")]
+    pub verbose: bool,
 }
 
 impl Default for Config {
@@ -21,13 +43,15 @@ impl Default for Config {
             async: Config::default_async(),
             backend: LoggingBackend::default(),
             level: LoggingLevel::default(),
+            modules: BTreeMap::new(),
+            verbose: false,
         }
     }
 }
 
 impl Config {
-    /// Default value for `async` used by serde.
     fn default_async() -> bool { true }
+    fn default_verbose() -> bool { false }
 }
 
 

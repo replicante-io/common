@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.0 - Unreleased
 ### Added
+- Apply level filter by module prefix
 - Move logging logic to shared crate
 
 ### Changed
