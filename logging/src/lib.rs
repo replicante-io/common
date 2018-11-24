@@ -30,6 +30,7 @@ mod decorator;
 mod options;
 
 pub use config::Config;
+pub use config::LoggingLevel;
 pub use options::Opts;
 
 use config::LoggingBackend;
