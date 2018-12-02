@@ -2,6 +2,7 @@
 members = [
   "agent/models",
   "logging",
+  "util/failure",
   "util/iron",
   "util/rndid",
   "util/tracing",

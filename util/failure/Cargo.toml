@@ -1,0 +1,17 @@
+[package]
+name = "replicante_util_failure"
+version = "0.1.0"
+authors = ["Stefano Pogliani <stefano@spogliani.net>"]
+
+description = "Helper functions to manage failures"
+documentation = "https://github.com/replicante-io/common"
+homepage = "https://www.replicante.io/"
+repository = "https://github.com/replicante-io/common"
+readme = "../../README.md"
+keywords = ["replicante", "utility", "failure"]
+license = "MIT"
+
+
+[dependencies]
+failure = "^0.1.3"
+slog = "^2.2.0"

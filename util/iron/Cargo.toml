@@ -12,10 +12,6 @@ keywords = ["replicante", "utility", "iron"]
 license = "MIT"
 
 
-[badges]
-maintenance = { status = "actively-developed" }
-
-
 [dependencies]
 iron = "^0.6.0"
 opentracingrust = "^0.3.1"
