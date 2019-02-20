@@ -17,7 +17,7 @@ use rand::Rng;
 /// Randomly generated (probably) unique IDs.
 ///
 /// IDs are generated as a random sequence of 128 bits.
-#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
+#[derive(Clone, Default, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
 pub struct RndId(String);
 
 impl RndId {
