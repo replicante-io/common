@@ -6,13 +6,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-## 0.1.0 - Unreleased
+## [0.1.1] - 2019-02-20
 ### Added
 - Apply level filter by module prefix
+
+## 0.1.0
+### Added
 - Move logging logic to shared crate
 
 ### Changed
 - Default log level for debug builds is debug
 
 
-[Unreleased]: https://github.com/replicante-io/common/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/replicante-io/common/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/replicante-io/common/compare/v0.1.0...v0.1.1
