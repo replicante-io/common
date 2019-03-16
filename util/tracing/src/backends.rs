@@ -31,9 +31,8 @@ pub fn zipkin(config: ZipkinConfig, logger: Logger) -> Result<(Tracer, TracerExt
     );
     let (tracer, receiver) = ZipkinTracer::new();
     let reporter = ReporterThread::new(receiver, move |span| {
-        if let Err(err) = collector.collect(span) {
-            let err = format!("{:?}", err);
-            error!(logger, "ZipkinTracer failed to report span"; "error" => err);
+        if let Err(error) = collector.collect(span) {
+            error!(logger, "ZipkinTracer failed to report span"; "error" => ?error);
         }
     });
     Ok((tracer, TracerExtra::ReporterThread(reporter)))
@@ -54,7 +53,7 @@ mod tests {
             match extra {
                 TracerExtra::ReporterThread(mut reporter) =>
                     reporter.stop_delay(Duration::from_millis(10)),
-                _ => panic!("")
+                _ => panic!("unexpected extra payload")
             };
         }
     }

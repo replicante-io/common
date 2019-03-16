@@ -1,5 +1,4 @@
-#[macro_use]
-extern crate error_chain;
+extern crate failure;
 extern crate opentracingrust;
 extern crate opentracingrust_zipkin;
 
@@ -19,13 +18,12 @@ use slog::Logger;
 
 mod backends;
 mod config;
+mod error;
 
-mod errors {
-    error_chain! {}
-}
-
-pub use self::errors::*;
 pub use self::config::Config;
+pub use self::error::Error;
+pub use self::error::ErrorKind;
+pub use self::error::Result;
 
 
 /// Tracer-dependent additional returns options.
