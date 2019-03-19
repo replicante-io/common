@@ -20,7 +20,6 @@ rust:
 env:
   - TASK=test
   - TASK=clippy
-  - TASK=audit
 
 install: ci/travis.sh install "${TASK}"
 script: ci/travis.sh script "${TASK}"

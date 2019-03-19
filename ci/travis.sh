@@ -6,7 +6,6 @@ set -ex
 case "$1" in
   install)
     case "$2" in
-      audit) ci/travis/audit-install.sh;;
       clippy) ci/travis/clippy-install.sh;;
       test) ;;
 
@@ -18,7 +17,6 @@ case "$1" in
 
   script)
     case "$2" in
-      audit) ci/travis/audit-script.sh;;
       clippy) ci/travis/clippy-script.sh;;
       test) ci/travis/test-script.sh;;
 
