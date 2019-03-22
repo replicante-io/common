@@ -18,8 +18,8 @@ rust:
   - nightly  # "The Rust team appreciates" according to Travis.
 
 env:
-  - TASK=test
-  - TASK=clippy
+  - TASK=build
+  - TASK=audit
 
 install: ci/travis.sh install "${TASK}"
 script: ci/travis.sh script "${TASK}"
