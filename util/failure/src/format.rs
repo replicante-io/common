@@ -30,7 +30,7 @@ pub struct SerializableFail {
 impl<E: Fail> From<E> for SerializableFail {
     fn from(error: E) -> SerializableFail {
         let layers = Fail::iter_chain(&error).map(|l| l.to_string()).collect();
-        let trace = match Fail::find_root_cause(&error).backtrace().map(|bt| bt.to_string()) {
+        let trace = match error.backtrace().map(|bt| bt.to_string()) {
             None => None,
             Some(ref bt) if bt == "" => None,
             Some(bt) => Some(bt),

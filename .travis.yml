@@ -19,7 +19,6 @@ rust:
 
 env:
   - TASK=build
-  - TASK=audit
 
 install: ci/travis.sh install "${TASK}"
 script: ci/travis.sh script "${TASK}"
@@ -27,5 +26,4 @@ script: ci/travis.sh script "${TASK}"
 matrix:
   allow_failures:
     - rust: nightly
-    - env: TASK=audit
   fast_finish: true
