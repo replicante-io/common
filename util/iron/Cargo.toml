@@ -13,10 +13,14 @@ license = "MIT"
 
 
 [dependencies]
+failure = "^0.1.5"
 iron = "^0.6.0"
 opentracingrust = "^0.3.1"
 prometheus = "^0.5.0"
+serde_json = "^1.0.13"
 slog = "^2.2.0"
+
+replicante_util_failure = { version = "^0.1.0", path = "../failure" }
 
 
 [dev-dependencies]

@@ -1,23 +1,30 @@
+extern crate failure;
 extern crate iron;
+extern crate opentracingrust;
+extern crate prometheus;
+
+extern crate serde_json;
+#[macro_use]
+extern crate slog;
+
+extern crate replicante_util_failure;
+
 #[cfg(test)]
 extern crate iron_test;
 #[cfg(test)]
 extern crate router;
 
-extern crate opentracingrust;
-extern crate prometheus;
-
-#[macro_use]
-extern crate slog;
 
 use iron::Request;
 use iron::Response;
 
 
+mod error;
 mod logging;
 mod metrics;
 mod tracing;
 
+pub use self::error::into_ironerror;
 pub use self::logging::middleware::RequestLogger;
 pub use self::metrics::expose::MetricsHandler;
 pub use self::metrics::observe::MetricsMiddleware;
@@ -29,12 +36,10 @@ fn request_method(request: &Request) -> String {
     request.method.to_string()
 }
 
-
 /// Extracts the request path as a string.
 fn request_path(request: &Request) -> String {
     format!("/{}", request.url.path().join("/"))
 }
-
 
 /// Extracts the response status code as a string.
 ///

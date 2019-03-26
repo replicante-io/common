@@ -19,6 +19,30 @@ pub fn format_fail(fail: &dyn Fail) -> String {
     message
 }
 
+/// Serde serializable/deserializable "view" of a `Fail` error.
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct SerializableFail {
+    pub error: String,
+    pub layers: Vec<String>,
+    pub trace: Option<String>,
+}
+
+impl<E: Fail> From<E> for SerializableFail {
+    fn from(error: E) -> SerializableFail {
+        let layers = Fail::iter_chain(&error).map(|l| l.to_string()).collect();
+        let trace = match Fail::find_root_cause(&error).backtrace().map(|bt| bt.to_string()) {
+            None => None,
+            Some(ref bt) if bt == "" => None,
+            Some(bt) => Some(bt),
+        };
+        SerializableFail {
+            error: error.to_string(),
+            layers,
+            trace,
+        }
+    }
+}
+
 
 #[cfg(test)]
 mod test {
@@ -26,6 +50,7 @@ mod test {
     use failure::err_msg;
 
     use super::format_fail;
+    use super::SerializableFail;
 
 
     #[test]
@@ -46,5 +71,20 @@ mod test {
     Caused by: some
     Caused by: more
     Caused by: errors"#);
+    }
+
+    #[test]
+    fn serializable_fail() {
+        let error = err_msg("test")
+            .context("chained")
+            .context("failures");
+        let error: SerializableFail = error.into();
+        assert_eq!(error.error, "failures");
+        assert_eq!(error.layers, vec![
+            String::from("failures"),
+            String::from("chained"),
+            String::from("test")
+        ]);
+        assert_eq!(error.trace, None);
     }
 }
