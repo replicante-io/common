@@ -80,25 +80,20 @@ impl Default for LoggingBackend {
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub enum LoggingLevel {
-    /// Critical
-    #[serde(rename = "critical")]
-    Critical,
-
-    /// Error
-    #[serde(rename = "error")]
-    Error,
-
-    /// Warning
-    #[serde(rename = "warning")]
-    Warning,
-
-    /// Info
-    #[serde(rename = "info")]
-    Info,
-
-    /// Debug
     #[serde(rename = "debug")]
-    Debug,
+    Debug = 1,
+
+    #[serde(rename = "info")]
+    Info = 2,
+
+    #[serde(rename = "warning")]
+    Warning = 3,
+
+    #[serde(rename = "error")]
+    Error = 4,
+
+    #[serde(rename = "critical")]
+    Critical = 5,
 }
 
 impl Default for LoggingLevel {
