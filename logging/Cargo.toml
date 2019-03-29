@@ -1,6 +1,6 @@
 [package]
 name = "replicante_logging"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Stefano Pogliani <stefano@spogliani.net>"]
 
 description = "Replicante common logging logic"
