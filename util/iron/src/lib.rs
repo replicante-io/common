@@ -2,7 +2,7 @@ extern crate failure;
 extern crate iron;
 extern crate opentracingrust;
 extern crate prometheus;
-
+extern crate router as iron_router;
 extern crate serde_json;
 #[macro_use]
 extern crate slog;
@@ -11,25 +11,24 @@ extern crate replicante_util_failure;
 
 #[cfg(test)]
 extern crate iron_test;
-#[cfg(test)]
-extern crate router;
-
 
 use iron::Request;
 use iron::Response;
 
-
 mod error;
 mod logging;
 mod metrics;
+mod router;
 mod tracing;
 
 pub use self::error::into_ironerror;
 pub use self::logging::middleware::RequestLogger;
 pub use self::metrics::expose::MetricsHandler;
 pub use self::metrics::observe::MetricsMiddleware;
+pub use self::router::RootDescriptor;
+pub use self::router::RootedRouter;
+pub use self::router::Router;
 pub use self::tracing::carrier::HeadersCarrier;
-
 
 /// Extracts the request method as a string.
 fn request_method(request: &Request) -> String {

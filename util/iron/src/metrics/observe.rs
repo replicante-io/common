@@ -318,7 +318,7 @@ mod tests {
         use iron::status;
         use iron::Headers;
         use iron_test::request;
-        use router::Router;
+        use iron_router::Router;
 
         use prometheus::CounterVec;
         use prometheus::HistogramOpts;
