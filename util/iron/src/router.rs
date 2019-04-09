@@ -29,7 +29,7 @@ impl Router {
     }
 
     /// Returns a "veiw" on the router to register endpoints under a specific root.
-    pub fn for_root<R: RootDescriptor>(&mut self, root: R) -> RootedRouter {
+    pub fn for_root<R: RootDescriptor>(&mut self, root: &R) -> RootedRouter {
         let enabled = root.enabled(&self.flags);
         let prefix = root.prefix();
         let router = &mut self.inner;
@@ -209,7 +209,7 @@ mod tests {
     fn attach_get() {
         let mut router = Router::new(HashMap::new());
         {
-            let mut root = router.for_root(Roots::R1);
+            let mut root = router.for_root(&Roots::R1);
             root.get("", &mock_get, "");
             root.get("/subtree", &mock_get, "/subtree");
         }
@@ -230,7 +230,7 @@ mod tests {
     fn attach_post() {
         let mut router = Router::new(HashMap::new());
         {
-            let mut root = router.for_root(Roots::R2);
+            let mut root = router.for_root(&Roots::R2);
             root.post("", &mock_post, "");
         }
         let router = router.build();
@@ -245,7 +245,7 @@ mod tests {
     fn attach_route() {
         let mut router = Router::new(HashMap::new());
         {
-            let mut root = router.for_root(Roots::R3);
+            let mut root = router.for_root(&Roots::R3);
             root.route(method::Put, "", &mock_put, "");
         }
         let router = router.build();
@@ -263,15 +263,15 @@ mod tests {
         flags.insert("r2", true);
         let mut router = Router::new(flags);
         {
-            let mut root = router.for_root(Roots::R1);
+            let mut root = router.for_root(&Roots::R1);
             root.get("/test", &mock_get, "/test");
         }
         {
-            let mut root = router.for_root(Roots::R2);
+            let mut root = router.for_root(&Roots::R2);
             root.get("/test", &mock_get, "/test");
         }
         {
-            let mut root = router.for_root(Roots::R3);
+            let mut root = router.for_root(&Roots::R3);
             root.get("/test", &mock_get, "/test");
         }
         let router = router.build();
@@ -295,15 +295,15 @@ mod tests {
         flags.insert("test", false);
         let mut router = Router::new(flags);
         {
-            let mut root = router.for_root(Roots::R1);
+            let mut root = router.for_root(&Roots::R1);
             root.get("/test", &mock_get, "/test");
         }
         {
-            let mut root = router.for_root(Roots::R2);
+            let mut root = router.for_root(&Roots::R2);
             root.get("/test", &mock_get, "/test");
         }
         {
-            let mut root = router.for_root(Roots::R3);
+            let mut root = router.for_root(&Roots::R3);
             root.get("/test", &mock_get, "/test");
         }
         let router = router.build();
