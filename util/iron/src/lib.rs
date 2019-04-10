@@ -45,5 +45,9 @@ fn request_path(request: &Request) -> String {
 /// # Panics
 /// If the response does not have a status set.
 fn response_status(response: &Response) -> String {
-    response.status.expect("Response instance does not have a status set").to_u16().to_string()
+    response
+        .status
+        .expect("Response instance does not have a status set")
+        .to_u16()
+        .to_string()
 }

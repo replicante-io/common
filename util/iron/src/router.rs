@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
+use iron::method;
 use iron::Chain;
 use iron::Handler;
-use iron::method;
 
 /// A builder object for an `iron-router` [`Router`].
 ///
@@ -33,7 +33,11 @@ impl Router {
         let enabled = root.enabled(&self.flags);
         let prefix = root.prefix();
         let router = &mut self.inner;
-        RootedRouter { enabled, prefix, router }
+        RootedRouter {
+            enabled,
+            prefix,
+            router,
+        }
     }
 }
 
@@ -91,7 +95,7 @@ pub trait RootDescriptor {
 }
 
 /// Specialised router to mount endpoints under a fixed root.
-/// 
+///
 /// The root's prefix is automatically prepended to the URI handlers are
 /// registered with as well as the the Iron `::router::Router` id.
 pub struct RootedRouter<'a> {
@@ -170,15 +174,15 @@ mod tests {
                     Some(flag) => *flag,
                     None => match flags.get("test") {
                         Some(flag) => *flag,
-                        None => true
-                    }
+                        None => true,
+                    },
                 },
                 Roots::R2 => match flags.get("r2") {
                     Some(flag) => *flag,
                     None => match flags.get("test") {
                         Some(flag) => *flag,
-                        None => true
-                    }
+                        None => true,
+                    },
                 },
                 Roots::R3 => true,
             }
@@ -214,13 +218,17 @@ mod tests {
             root.get("/subtree", &mock_get, "/subtree");
         }
         let router = router.build();
-        let response = request::get("http://host:16016/api/root1", Headers::new(), &router)
-            .unwrap();
+        let response =
+            request::get("http://host:16016/api/root1", Headers::new(), &router).unwrap();
         let result_body = response::extract_body_to_bytes(response);
         let result_body = String::from_utf8(result_body).unwrap();
         assert_eq!(result_body, "GET");
-        let response = request::get("http://host:16016/api/root1/subtree", Headers::new(), &router)
-            .unwrap();
+        let response = request::get(
+            "http://host:16016/api/root1/subtree",
+            Headers::new(),
+            &router,
+        )
+        .unwrap();
         let result_body = response::extract_body_to_bytes(response);
         let result_body = String::from_utf8(result_body).unwrap();
         assert_eq!(result_body, "GET");
@@ -234,8 +242,8 @@ mod tests {
             root.post("", &mock_post, "");
         }
         let router = router.build();
-        let response = request::post("http://host:16016/api/root2", Headers::new(), "", &router)
-            .unwrap();
+        let response =
+            request::post("http://host:16016/api/root2", Headers::new(), "", &router).unwrap();
         let result_body = response::extract_body_to_bytes(response);
         let result_body = String::from_utf8(result_body).unwrap();
         assert_eq!(result_body, "POST");
@@ -249,8 +257,8 @@ mod tests {
             root.route(method::Put, "", &mock_put, "");
         }
         let router = router.build();
-        let response = request::put("http://host:16016/api/root3", Headers::new(), "", &router)
-            .unwrap();
+        let response =
+            request::put("http://host:16016/api/root3", Headers::new(), "", &router).unwrap();
         let result_body = response::extract_body_to_bytes(response);
         let result_body = String::from_utf8(result_body).unwrap();
         assert_eq!(result_body, "PUT");
@@ -277,13 +285,13 @@ mod tests {
         let router = router.build();
         let response = request::get("http://host:16016/api/root1/test", Headers::new(), &router);
         assert_eq!(true, response.is_err());
-        let response = request::get("http://host:16016/api/root2/test", Headers::new(), &router)
-            .unwrap();
+        let response =
+            request::get("http://host:16016/api/root2/test", Headers::new(), &router).unwrap();
         let result_body = response::extract_body_to_bytes(response);
         let result_body = String::from_utf8(result_body).unwrap();
         assert_eq!(result_body, "GET");
-        let response = request::get("http://host:16016/api/root3/test", Headers::new(), &router)
-            .unwrap();
+        let response =
+            request::get("http://host:16016/api/root3/test", Headers::new(), &router).unwrap();
         let result_body = response::extract_body_to_bytes(response);
         let result_body = String::from_utf8(result_body).unwrap();
         assert_eq!(result_body, "GET");
@@ -311,8 +319,8 @@ mod tests {
         assert_eq!(true, response.is_err());
         let response = request::get("http://host:16016/api/root2/test", Headers::new(), &router);
         assert_eq!(true, response.is_err());
-        let response = request::get("http://host:16016/api/root3/test", Headers::new(), &router)
-            .unwrap();
+        let response =
+            request::get("http://host:16016/api/root3/test", Headers::new(), &router).unwrap();
         let result_body = response::extract_body_to_bytes(response);
         let result_body = String::from_utf8(result_body).unwrap();
         assert_eq!(result_body, "GET");

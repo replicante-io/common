@@ -5,19 +5,18 @@ use iron::typemap::Key;
 use iron::AfterMiddleware;
 use iron::BeforeMiddleware;
 
+use prometheus::core::Collector;
 use prometheus::CounterVec;
 use prometheus::HistogramOpts;
 use prometheus::HistogramTimer;
 use prometheus::HistogramVec;
 use prometheus::Opts;
-use prometheus::core::Collector;
 
 use slog::Logger;
 
 use super::super::request_method;
 use super::super::request_path;
 use super::super::response_status;
-
 
 /// An Iron middlewere to collect metrics about endpoints.
 ///
@@ -60,24 +59,27 @@ impl MetricsMiddleware {
         let duration = HistogramVec::new(
             HistogramOpts::new(
                 format!("{}_endpoint_duration", prefix).as_str(),
-                "Duration (in seconds) of HTTP endpoints"
+                "Duration (in seconds) of HTTP endpoints",
             ),
-            &["method", "path"]
-        ).expect("Unable to configure duration histogram");
+            &["method", "path"],
+        )
+        .expect("Unable to configure duration histogram");
         let errors = CounterVec::new(
             Opts::new(
                 format!("{}_endpoint_errors", prefix).as_str(),
-                "Number of errors encountered while handling requests"
+                "Number of errors encountered while handling requests",
             ),
-            &["method", "path"]
-        ).expect("Unable to configure errors counter");
+            &["method", "path"],
+        )
+        .expect("Unable to configure errors counter");
         let requests = CounterVec::new(
             Opts::new(
                 format!("{}_endpoint_requests", prefix).as_str(),
-                "Number of requests processed"
+                "Number of requests processed",
             ),
-            &["method", "path", "status"]
-        ).expect("Unable to configure requests counter");
+            &["method", "path", "status"],
+        )
+        .expect("Unable to configure requests counter");
         (duration, errors, requests)
     }
 
@@ -98,17 +100,28 @@ impl MetricsMiddleware {
     /// This method validates the given metrics against the requirements
     /// and panics if any is not met.
     pub fn new(
-        duration: HistogramVec, errors: CounterVec, requests: CounterVec, logger: Logger
+        duration: HistogramVec,
+        errors: CounterVec,
+        requests: CounterVec,
+        logger: Logger,
     ) -> MetricsMiddleware {
         // Check duration Histogram.
         for desc in duration.desc() {
-            match desc.const_label_pairs.iter().find(|label| label.get_name() == "path") {
+            match desc
+                .const_label_pairs
+                .iter()
+                .find(|label| label.get_name() == "path")
+            {
                 None => (),
-                Some(_) => panic!("The duration histogram cannot have a const 'path' label")
+                Some(_) => panic!("The duration histogram cannot have a const 'path' label"),
             };
-            match desc.const_label_pairs.iter().find(|label| label.get_name() == "method") {
+            match desc
+                .const_label_pairs
+                .iter()
+                .find(|label| label.get_name() == "method")
+            {
                 None => (),
-                Some(_) => panic!("The duration histogram cannot have a const 'method' label")
+                Some(_) => panic!("The duration histogram cannot have a const 'method' label"),
             };
             assert!(
                 desc.variable_labels == vec!["method", "path"],
@@ -118,13 +131,21 @@ impl MetricsMiddleware {
 
         // Check errors counter.
         for desc in errors.desc() {
-            match desc.const_label_pairs.iter().find(|label| label.get_name() == "path") {
+            match desc
+                .const_label_pairs
+                .iter()
+                .find(|label| label.get_name() == "path")
+            {
                 None => (),
-                Some(_) => panic!("The errors counter cannot have a const 'path' label")
+                Some(_) => panic!("The errors counter cannot have a const 'path' label"),
             };
-            match desc.const_label_pairs.iter().find(|label| label.get_name() == "method") {
+            match desc
+                .const_label_pairs
+                .iter()
+                .find(|label| label.get_name() == "method")
+            {
                 None => (),
-                Some(_) => panic!("The errors counter cannot have a const 'method' label")
+                Some(_) => panic!("The errors counter cannot have a const 'method' label"),
             };
             assert!(
                 desc.variable_labels == vec!["method", "path"],
@@ -134,17 +155,29 @@ impl MetricsMiddleware {
 
         // Check requests counter.
         for desc in requests.desc() {
-            match desc.const_label_pairs.iter().find(|label| label.get_name() == "path") {
+            match desc
+                .const_label_pairs
+                .iter()
+                .find(|label| label.get_name() == "path")
+            {
                 None => (),
-                Some(_) => panic!("The requests counter cannot have a const 'path' label")
+                Some(_) => panic!("The requests counter cannot have a const 'path' label"),
             };
-            match desc.const_label_pairs.iter().find(|label| label.get_name() == "method") {
+            match desc
+                .const_label_pairs
+                .iter()
+                .find(|label| label.get_name() == "method")
+            {
                 None => (),
-                Some(_) => panic!("The requests counter cannot have a const 'method' label")
+                Some(_) => panic!("The requests counter cannot have a const 'method' label"),
             };
-            match desc.const_label_pairs.iter().find(|label| label.get_name() == "status") {
+            match desc
+                .const_label_pairs
+                .iter()
+                .find(|label| label.get_name() == "status")
+            {
                 None => (),
-                Some(_) => panic!("The requests counter cannot have a const 'status' label")
+                Some(_) => panic!("The requests counter cannot have a const 'status' label"),
             };
             assert!(
                 desc.variable_labels == vec!["method", "path", "status"],
@@ -164,12 +197,13 @@ impl MetricsMiddleware {
     /// Converts the middlewere into Iron's BeforeMiddleware and AfterMiddleware.
     pub fn into_middleware(self) -> (MetricsBefore, MetricsAfter) {
         let me = Arc::new(self);
-        let before = MetricsBefore { middlewere: Arc::clone(&me) };
+        let before = MetricsBefore {
+            middlewere: Arc::clone(&me),
+        };
         let after = MetricsAfter { middlewere: me };
         (before, after)
     }
 }
-
 
 /// An Iron extension to store per-request metric data.
 struct MetricsExtension {
@@ -180,7 +214,6 @@ impl Key for MetricsExtension {
     type Value = MetricsExtension;
 }
 
-
 /// Iron BeforeMiddleware to prepare request tracking.
 pub struct MetricsBefore {
     middlewere: Arc<MetricsMiddleware>,
@@ -190,10 +223,12 @@ impl BeforeMiddleware for MetricsBefore {
     fn before(&self, request: &mut Request) -> IronResult<()> {
         let method = request_method(&request);
         let path = request_path(&request);
-        let timer = self.middlewere.duration.with_label_values(&[&method, &path]).start_timer();
-        let extension = MetricsExtension {
-            duration: timer,
-        };
+        let timer = self
+            .middlewere
+            .duration
+            .with_label_values(&[&method, &path])
+            .start_timer();
+        let extension = MetricsExtension { duration: timer };
         request.extensions.insert::<MetricsExtension>(extension);
         Ok(())
     }
@@ -203,17 +238,26 @@ impl BeforeMiddleware for MetricsBefore {
         // Still obseve a duration for this request or the counts to be accurate.
         let method = request_method(&request);
         let path = request_path(&request);
-        self.middlewere.errors.with_label_values(&[&method, &path]).inc();
-        let timer = self.middlewere.duration.with_label_values(&[&method, &path]).start_timer();
+        self.middlewere
+            .errors
+            .with_label_values(&[&method, &path])
+            .inc();
+        let timer = self
+            .middlewere
+            .duration
+            .with_label_values(&[&method, &path])
+            .start_timer();
         timer.observe_duration();
 
         // Record the request by status code.
         let status = response_status(&err.response);
-        self.middlewere.requests.with_label_values(&[&method, &path, &status]).inc();
+        self.middlewere
+            .requests
+            .with_label_values(&[&method, &path, &status])
+            .inc();
         Err(err)
     }
 }
-
 
 /// Iron AfterMiddleware to record metrics.
 pub struct MetricsAfter {
@@ -225,12 +269,17 @@ impl AfterMiddleware for MetricsAfter {
         let status = response_status(&response);
         let method = request_method(&request);
         let path = request_path(&request);
-        self.middlewere.requests.with_label_values(&[&method, &path, &status]).inc();
-
+        self.middlewere
+            .requests
+            .with_label_values(&[&method, &path, &status])
+            .inc();
         let metrics = match request.extensions.remove::<MetricsExtension>() {
             Some(metrics) => metrics,
             None => {
-                error!(self.middlewere.logger, "Unable to find MetricsExtension on the request");
+                error!(
+                    self.middlewere.logger,
+                    "Unable to find MetricsExtension on the request",
+                );
                 return Ok(response);
             }
         };
@@ -242,13 +291,21 @@ impl AfterMiddleware for MetricsAfter {
         let status = response_status(&err.response);
         let method = request_method(&request);
         let path = request_path(&request);
-        self.middlewere.errors.with_label_values(&[&method, &path]).inc();
-        self.middlewere.requests.with_label_values(&[&method, &path, &status]).inc();
-
+        self.middlewere
+            .errors
+            .with_label_values(&[&method, &path])
+            .inc();
+        self.middlewere
+            .requests
+            .with_label_values(&[&method, &path, &status])
+            .inc();
         let metrics = match request.extensions.remove::<MetricsExtension>() {
             Some(metrics) => metrics,
             None => {
-                error!(self.middlewere.logger, "Unable to find MetricsExtension on the request");
+                error!(
+                    self.middlewere.logger,
+                    "Unable to find MetricsExtension on the request",
+                );
                 return Err(err);
             }
         };
@@ -256,7 +313,6 @@ impl AfterMiddleware for MetricsAfter {
         Err(err)
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -269,6 +325,7 @@ mod tests {
 
     mod metrics {
         use prometheus::core::Collector;
+
         use super::super::MetricsMiddleware;
 
         #[test]
@@ -279,9 +336,10 @@ mod tests {
             let desc = descs[0];
             assert_eq!(desc.fq_name, "test_endpoint_duration");
             assert_eq!(desc.const_label_pairs.len(), 0);
-            assert_eq!(desc.variable_labels, [
-                String::from("method"), String::from("path")
-            ]);
+            assert_eq!(
+                desc.variable_labels,
+                [String::from("method"), String::from("path")]
+            );
         }
 
         #[test]
@@ -292,9 +350,10 @@ mod tests {
             let desc = descs[0];
             assert_eq!(desc.fq_name, "test_endpoint_errors");
             assert_eq!(desc.const_label_pairs.len(), 0);
-            assert_eq!(desc.variable_labels, [
-                String::from("method"), String::from("path")
-            ]);
+            assert_eq!(
+                desc.variable_labels,
+                [String::from("method"), String::from("path")]
+            );
         }
 
         #[test]
@@ -305,9 +364,14 @@ mod tests {
             let desc = descs[0];
             assert_eq!(desc.fq_name, "test_endpoint_requests");
             assert_eq!(desc.const_label_pairs.len(), 0);
-            assert_eq!(desc.variable_labels, [
-                String::from("method"), String::from("path"), String::from("status")
-            ]);
+            assert_eq!(
+                desc.variable_labels,
+                [
+                    String::from("method"),
+                    String::from("path"),
+                    String::from("status"),
+                ]
+            );
         }
     }
 
@@ -317,14 +381,14 @@ mod tests {
         use iron::prelude::*;
         use iron::status;
         use iron::Headers;
-        use iron_test::request;
         use iron_router::Router;
+        use iron_test::request;
 
+        use prometheus::core::Collector;
         use prometheus::CounterVec;
         use prometheus::HistogramOpts;
         use prometheus::HistogramVec;
         use prometheus::Opts;
-        use prometheus::core::Collector;
 
         use super::super::MetricsMiddleware;
         use super::make_logger;
@@ -333,50 +397,56 @@ mod tests {
             HistogramVec::new(
                 HistogramOpts::new(
                     "agent_endpoint_duration",
-                    "Observe the duration (in seconds) of agent endpoints"
+                    "Observe the duration (in seconds) of agent endpoints",
                 ),
-                &vec!["method", "path"]
-            ).unwrap()
+                &vec!["method", "path"],
+            )
+            .unwrap()
         }
 
         fn make_errors() -> CounterVec {
             CounterVec::new(
                 Opts::new(
                     "agent_enpoint_errors",
-                    "Number of errors encountered while handling requests"
+                    "Number of errors encountered while handling requests",
                 ),
-                &vec!["method", "path"]
-            ).unwrap()
+                &vec!["method", "path"],
+            )
+            .unwrap()
         }
 
         fn make_requests() -> CounterVec {
             CounterVec::new(
-                Opts::new(
-                    "agent_enpoint_requests",
-                    "Number of requests processed"
-                ),
-                &vec!["method", "path", "status"]
-            ).unwrap()
+                Opts::new("agent_enpoint_requests", "Number of requests processed"),
+                &vec!["method", "path", "status"],
+            )
+            .unwrap()
         }
 
         fn mock_router() -> Router {
             let mut router = Router::new();
-            router.get("/", |_: &mut Request| -> IronResult<Response> {
-                Ok(Response::with((status::Ok, "Test")))
-            }, "index");
-            router.post("/error", |_: &mut Request| -> IronResult<Response> {
-                let error = IronError {
-                    error: Box::new(VarError::NotPresent),
-                    response: Response::with((status::BadRequest, "Test"))
-                };
-                Err(error)
-            }, "error");
+            router.get(
+                "/",
+                |_: &mut Request| -> IronResult<Response> {
+                    Ok(Response::with((status::Ok, "Test")))
+                },
+                "index",
+            );
+            router.post(
+                "/error",
+                |_: &mut Request| -> IronResult<Response> {
+                    let error = IronError {
+                        error: Box::new(VarError::NotPresent),
+                        response: Response::with((status::BadRequest, "Test")),
+                    };
+                    Err(error)
+                },
+                "error",
+            );
             router
         }
 
-        fn mock_handler(
-            duration: HistogramVec, errors: CounterVec, requests: CounterVec
-        ) -> Chain {
+        fn mock_handler(duration: HistogramVec, errors: CounterVec, requests: CounterVec) -> Chain {
             let router = mock_router();
             let logger = make_logger();
             let metrics = MetricsMiddleware::new(duration, errors, requests, logger);
@@ -405,7 +475,7 @@ mod tests {
             let handler = mock_handler(duration, errors.clone(), requests);
             match request::post("http://localhost:3000/error", Headers::new(), "", &handler) {
                 Ok(_) => panic!("request should have failed!"),
-                Err(_) => ()
+                Err(_) => (),
             };
             let count = errors.with_label_values(&["POST", "/error"]).get();
             assert_eq!(count, 1 as f64);
@@ -419,7 +489,10 @@ mod tests {
             let handler = mock_handler(duration.clone(), errors, requests);
             request::get("http://localhost:3000/", Headers::new(), &handler).unwrap();
             let metric = duration.with_label_values(&["GET", "/"]).collect();
-            assert_eq!(1 as u64, metric[0].get_metric()[0].get_histogram().get_sample_count());
+            assert_eq!(
+                1 as u64,
+                metric[0].get_metric()[0].get_histogram().get_sample_count()
+            );
             let sum = metric[0].get_metric()[0].get_histogram().get_sample_sum();
             assert!(sum < 1 as f64);
             assert!(sum > 0 as f64);
@@ -434,7 +507,7 @@ mod tests {
             request::get("http://localhost:3000/", Headers::new(), &handler).unwrap();
             match request::post("http://localhost:3000/error", Headers::new(), "", &handler) {
                 Ok(_) => panic!("request should have failed!"),
-                Err(_) => ()
+                Err(_) => (),
             };
             let count_200 = requests.with_label_values(&["GET", "/", "200"]).get();
             let count_400 = requests.with_label_values(&["POST", "/error", "400"]).get();
@@ -445,15 +518,17 @@ mod tests {
 
     mod validation {
         use prometheus::CounterVec;
-        use prometheus::HistogramVec;
         use prometheus::HistogramOpts;
+        use prometheus::HistogramVec;
         use prometheus::Opts;
 
         use super::super::MetricsMiddleware;
         use super::make_logger;
 
         #[test]
-        #[should_panic(expected = "The variable labels for the duration histogram must be ['method', 'path']")]
+        #[should_panic(
+            expected = "The variable labels for the duration histogram must be ['method', 'path']"
+        )]
         fn duration_with_no_labels() {
             let duration = HistogramVec::new(HistogramOpts::new("t1", "t1"), &vec![]).unwrap();
             let counter = CounterVec::new(Opts::new("t2", "t2"), &vec![]).unwrap();
@@ -463,11 +538,12 @@ mod tests {
         }
 
         #[test]
-        #[should_panic(expected = "The variable labels for the duration histogram must be ['method', 'path']")]
+        #[should_panic(
+            expected = "The variable labels for the duration histogram must be ['method', 'path']"
+        )]
         fn duration_with_rand_labels() {
-            let duration = HistogramVec::new(
-                HistogramOpts::new("t1", "t1"), &vec!["abc", "path"]
-            ).unwrap();
+            let duration =
+                HistogramVec::new(HistogramOpts::new("t1", "t1"), &vec!["abc", "path"]).unwrap();
             let counter = CounterVec::new(Opts::new("t2", "t2"), &vec![]).unwrap();
             let requests = CounterVec::new(Opts::new("t3", "t3"), &vec![]).unwrap();
             let logger = make_logger();
@@ -475,11 +551,12 @@ mod tests {
         }
 
         #[test]
-        #[should_panic(expected = "The variable labels for the duration histogram must be ['method', 'path']")]
+        #[should_panic(
+            expected = "The variable labels for the duration histogram must be ['method', 'path']"
+        )]
         fn duration_with_labels_out_of_order() {
-            let duration = HistogramVec::new(
-                HistogramOpts::new("t1", "t1"), &vec!["path", "method"]
-            ).unwrap();
+            let duration =
+                HistogramVec::new(HistogramOpts::new("t1", "t1"), &vec!["path", "method"]).unwrap();
             let counter = CounterVec::new(Opts::new("t2", "t2"), &vec![]).unwrap();
             let requests = CounterVec::new(Opts::new("t3", "t3"), &vec![]).unwrap();
             let logger = make_logger();
@@ -490,8 +567,10 @@ mod tests {
         #[should_panic(expected = "The duration histogram cannot have a const 'method' label")]
         fn duration_with_static_method_label() {
             let duration = HistogramVec::new(
-                HistogramOpts::new("t1", "t1").const_label("method", "test"), &vec![]
-            ).unwrap();
+                HistogramOpts::new("t1", "t1").const_label("method", "test"),
+                &vec![],
+            )
+            .unwrap();
             let counter = CounterVec::new(Opts::new("t2", "t2"), &vec![]).unwrap();
             let requests = CounterVec::new(Opts::new("t3", "t3"), &vec![]).unwrap();
             let logger = make_logger();
@@ -502,8 +581,10 @@ mod tests {
         #[should_panic(expected = "The duration histogram cannot have a const 'path' label")]
         fn duration_with_static_path_label() {
             let duration = HistogramVec::new(
-                HistogramOpts::new("t1", "t1").const_label("path", "test"), &vec![]
-            ).unwrap();
+                HistogramOpts::new("t1", "t1").const_label("path", "test"),
+                &vec![],
+            )
+            .unwrap();
             let counter = CounterVec::new(Opts::new("t2", "t2"), &vec![]).unwrap();
             let requests = CounterVec::new(Opts::new("t3", "t3"), &vec![]).unwrap();
             let logger = make_logger();
@@ -511,11 +592,12 @@ mod tests {
         }
 
         #[test]
-        #[should_panic(expected = "The variable labels for the errors counter must be ['method', 'path']")]
+        #[should_panic(
+            expected = "The variable labels for the errors counter must be ['method', 'path']"
+        )]
         fn errors_with_no_labels() {
-            let duration = HistogramVec::new(
-                HistogramOpts::new("t1", "t1"), &vec!["method", "path"]
-            ).unwrap();
+            let duration =
+                HistogramVec::new(HistogramOpts::new("t1", "t1"), &vec!["method", "path"]).unwrap();
             let counter = CounterVec::new(Opts::new("t2", "t2"), &vec![]).unwrap();
             let requests = CounterVec::new(Opts::new("t3", "t3"), &vec![]).unwrap();
             let logger = make_logger();
@@ -523,11 +605,12 @@ mod tests {
         }
 
         #[test]
-        #[should_panic(expected = "The variable labels for the errors counter must be ['method', 'path']")]
+        #[should_panic(
+            expected = "The variable labels for the errors counter must be ['method', 'path']"
+        )]
         fn errors_with_rand_labels() {
-            let duration = HistogramVec::new(
-                HistogramOpts::new("t1", "t1"), &vec!["method", "path"]
-            ).unwrap();
+            let duration =
+                HistogramVec::new(HistogramOpts::new("t1", "t1"), &vec!["method", "path"]).unwrap();
             let counter = CounterVec::new(Opts::new("t2", "t2"), &vec!["a", "path"]).unwrap();
             let requests = CounterVec::new(Opts::new("t3", "t3"), &vec![]).unwrap();
             let logger = make_logger();
@@ -537,12 +620,11 @@ mod tests {
         #[test]
         #[should_panic(expected = "The errors counter cannot have a const 'method' label")]
         fn errors_with_static_method_label() {
-            let duration = HistogramVec::new(
-                HistogramOpts::new("t1", "t1"), &vec!["method", "path"]
-            ).unwrap();
-            let counter = CounterVec::new(
-                Opts::new("t2", "t2").const_label("method", "test"), &vec![]
-            ).unwrap();
+            let duration =
+                HistogramVec::new(HistogramOpts::new("t1", "t1"), &vec!["method", "path"]).unwrap();
+            let counter =
+                CounterVec::new(Opts::new("t2", "t2").const_label("method", "test"), &vec![])
+                    .unwrap();
             let requests = CounterVec::new(Opts::new("t3", "t3"), &vec![]).unwrap();
             let logger = make_logger();
             MetricsMiddleware::new(duration, counter, requests, logger);
@@ -551,23 +633,23 @@ mod tests {
         #[test]
         #[should_panic(expected = "The errors counter cannot have a const 'path' label")]
         fn errors_with_static_path_label() {
-            let duration = HistogramVec::new(
-                HistogramOpts::new("t1", "t1"), &vec!["method", "path"]
-            ).unwrap();
-            let counter = CounterVec::new(
-                Opts::new("t2", "t2").const_label("path", "path"), &vec![]
-            ).unwrap();
+            let duration =
+                HistogramVec::new(HistogramOpts::new("t1", "t1"), &vec!["method", "path"]).unwrap();
+            let counter =
+                CounterVec::new(Opts::new("t2", "t2").const_label("path", "path"), &vec![])
+                    .unwrap();
             let requests = CounterVec::new(Opts::new("t3", "t3"), &vec![]).unwrap();
             let logger = make_logger();
             MetricsMiddleware::new(duration, counter, requests, logger);
         }
 
         #[test]
-        #[should_panic(expected = "The variable labels for the errors counter must be ['method', 'path']")]
+        #[should_panic(
+            expected = "The variable labels for the errors counter must be ['method', 'path']"
+        )]
         fn errors_with_labels_out_of_order() {
-            let duration = HistogramVec::new(
-                HistogramOpts::new("t1", "t1"), &vec!["method", "path"]
-            ).unwrap();
+            let duration =
+                HistogramVec::new(HistogramOpts::new("t1", "t1"), &vec!["method", "path"]).unwrap();
             let counter = CounterVec::new(Opts::new("t2", "t2"), &vec!["path", "method"]).unwrap();
             let requests = CounterVec::new(Opts::new("t3", "t3"), &vec![]).unwrap();
             let logger = make_logger();
@@ -575,11 +657,12 @@ mod tests {
         }
 
         #[test]
-        #[should_panic(expected = "The variable labels for the requests counter must be ['method', 'path', 'status']")]
+        #[should_panic(
+            expected = "The variable labels for the requests counter must be ['method', 'path', 'status']"
+        )]
         fn requests_with_no_labels() {
-            let duration = HistogramVec::new(
-                HistogramOpts::new("t1", "t1"), &vec!["method", "path"]
-            ).unwrap();
+            let duration =
+                HistogramVec::new(HistogramOpts::new("t1", "t1"), &vec!["method", "path"]).unwrap();
             let counter = CounterVec::new(Opts::new("t2", "t2"), &vec!["method", "path"]).unwrap();
             let requests = CounterVec::new(Opts::new("t3", "t3"), &vec![]).unwrap();
             let logger = make_logger();
@@ -587,15 +670,15 @@ mod tests {
         }
 
         #[test]
-        #[should_panic(expected = "The variable labels for the requests counter must be ['method', 'path', 'status']")]
+        #[should_panic(
+            expected = "The variable labels for the requests counter must be ['method', 'path', 'status']"
+        )]
         fn requests_with_rand_labels() {
-            let duration = HistogramVec::new(
-                HistogramOpts::new("t1", "t1"), &vec!["method", "path"]
-            ).unwrap();
+            let duration =
+                HistogramVec::new(HistogramOpts::new("t1", "t1"), &vec!["method", "path"]).unwrap();
             let counter = CounterVec::new(Opts::new("t2", "t2"), &vec!["method", "path"]).unwrap();
-            let requests = CounterVec::new(
-                Opts::new("t3", "t3"), &vec!["a", "path", "status"]
-            ).unwrap();
+            let requests =
+                CounterVec::new(Opts::new("t3", "t3"), &vec!["a", "path", "status"]).unwrap();
             let logger = make_logger();
             MetricsMiddleware::new(duration, counter, requests, logger);
         }
@@ -603,13 +686,12 @@ mod tests {
         #[test]
         #[should_panic(expected = "The requests counter cannot have a const 'method' label")]
         fn requests_with_static_method_label() {
-            let duration = HistogramVec::new(
-                HistogramOpts::new("t1", "t1"), &vec!["method", "path"]
-            ).unwrap();
+            let duration =
+                HistogramVec::new(HistogramOpts::new("t1", "t1"), &vec!["method", "path"]).unwrap();
             let counter = CounterVec::new(Opts::new("t2", "t2"), &vec!["method", "path"]).unwrap();
-            let requests = CounterVec::new(
-                Opts::new("t3", "t3").const_label("method", "test"), &vec![]
-            ).unwrap();
+            let requests =
+                CounterVec::new(Opts::new("t3", "t3").const_label("method", "test"), &vec![])
+                    .unwrap();
             let logger = make_logger();
             MetricsMiddleware::new(duration, counter, requests, logger);
         }
@@ -617,13 +699,12 @@ mod tests {
         #[test]
         #[should_panic(expected = "The requests counter cannot have a const 'path' label")]
         fn requests_with_static_path_label() {
-            let duration = HistogramVec::new(
-                HistogramOpts::new("t1", "t1"), &vec!["method", "path"]
-            ).unwrap();
+            let duration =
+                HistogramVec::new(HistogramOpts::new("t1", "t1"), &vec!["method", "path"]).unwrap();
             let counter = CounterVec::new(Opts::new("t2", "t2"), &vec!["method", "path"]).unwrap();
-            let requests = CounterVec::new(
-                Opts::new("t3", "t3").const_label("path", "test"), &vec![]
-            ).unwrap();
+            let requests =
+                CounterVec::new(Opts::new("t3", "t3").const_label("path", "test"), &vec![])
+                    .unwrap();
             let logger = make_logger();
             MetricsMiddleware::new(duration, counter, requests, logger);
         }
@@ -631,40 +712,37 @@ mod tests {
         #[test]
         #[should_panic(expected = "The requests counter cannot have a const 'status' label")]
         fn requests_with_static_code_label() {
-            let duration = HistogramVec::new(
-                HistogramOpts::new("t1", "t1"), &vec!["method", "path"]
-            ).unwrap();
+            let duration =
+                HistogramVec::new(HistogramOpts::new("t1", "t1"), &vec!["method", "path"]).unwrap();
             let counter = CounterVec::new(Opts::new("t2", "t2"), &vec!["method", "path"]).unwrap();
-            let requests = CounterVec::new(
-                Opts::new("t3", "t3").const_label("status", "test"), &vec![]
-            ).unwrap();
+            let requests =
+                CounterVec::new(Opts::new("t3", "t3").const_label("status", "test"), &vec![])
+                    .unwrap();
             let logger = make_logger();
             MetricsMiddleware::new(duration, counter, requests, logger);
         }
 
         #[test]
-        #[should_panic(expected = "The variable labels for the requests counter must be ['method', 'path', 'status']")]
+        #[should_panic(
+            expected = "The variable labels for the requests counter must be ['method', 'path', 'status']"
+        )]
         fn requests_with_labels_out_of_order() {
-            let duration = HistogramVec::new(
-                HistogramOpts::new("t1", "t1"), &vec!["method", "path"]
-            ).unwrap();
+            let duration =
+                HistogramVec::new(HistogramOpts::new("t1", "t1"), &vec!["method", "path"]).unwrap();
             let counter = CounterVec::new(Opts::new("t2", "t2"), &vec!["method", "path"]).unwrap();
-            let requests = CounterVec::new(
-                Opts::new("t3", "t3"), &vec!["path", "status", "method"]
-            ).unwrap();
+            let requests =
+                CounterVec::new(Opts::new("t3", "t3"), &vec!["path", "status", "method"]).unwrap();
             let logger = make_logger();
             MetricsMiddleware::new(duration, counter, requests, logger);
         }
 
         #[test]
         fn creates_the_middlewere() {
-            let duration = HistogramVec::new(
-                HistogramOpts::new("t1", "t1"), &vec!["method", "path"]
-            ).unwrap();
+            let duration =
+                HistogramVec::new(HistogramOpts::new("t1", "t1"), &vec!["method", "path"]).unwrap();
             let counter = CounterVec::new(Opts::new("t2", "t2"), &vec!["method", "path"]).unwrap();
-            let requests = CounterVec::new(
-                Opts::new("t3", "t3"), &vec!["method", "path", "status"]
-            ).unwrap();
+            let requests =
+                CounterVec::new(Opts::new("t3", "t3"), &vec!["method", "path", "status"]).unwrap();
             let logger = make_logger();
             MetricsMiddleware::new(duration, counter, requests, logger);
         }

@@ -1,13 +1,12 @@
-use iron::prelude::*;
-use iron::Handler;
 use iron::headers::ContentType;
 use iron::mime::Mime;
+use iron::prelude::*;
 use iron::status;
+use iron::Handler;
 
 use prometheus::Encoder;
 use prometheus::Registry;
 use prometheus::TextEncoder;
-
 
 /// An Iron Handler that exposes prometheus metrics in text format.
 pub struct MetricsHandler {
@@ -40,11 +39,10 @@ impl Handler for MetricsHandler {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
-    use iron::IronResult;
     use iron::Headers;
+    use iron::IronResult;
     use iron::Response;
     use iron_test::request;
     use iron_test::response;
@@ -58,7 +56,8 @@ mod tests {
         let handler = MetricsHandler::new(registry);
         request::get(
             "http://localhost:3000/api/v1/metrics",
-            Headers::new(), &handler
+            Headers::new(),
+            &handler,
         )
     }
 

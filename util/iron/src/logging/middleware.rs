@@ -46,7 +46,6 @@ impl AfterMiddleware for RequestLogger {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use std::sync::Arc;
@@ -70,7 +69,6 @@ mod tests {
 
     use super::RequestLogger;
 
-
     #[derive(Debug)]
     struct MockError;
     impl ::std::fmt::Display for MockError {
@@ -79,12 +77,14 @@ mod tests {
         }
     }
     impl ::std::error::Error for MockError {
-        fn description(&self) -> &str { "MockError" }
+        fn description(&self) -> &str {
+            "MockError"
+        }
     }
 
     #[derive(Clone)]
     struct MockDrain {
-        lines: Arc<Mutex<Vec<String>>>
+        lines: Arc<Mutex<Vec<String>>>,
     }
     impl MockDrain {
         pub fn new(lines: Arc<Mutex<Vec<String>>>) -> MockDrain {
@@ -95,7 +95,9 @@ mod tests {
         type Ok = ();
         type Err = Never;
         fn log(
-            &self, record: &Record, _: &OwnedKVList
+            &self,
+            record: &Record,
+            _: &OwnedKVList,
         ) -> ::std::result::Result<Self::Ok, Self::Err> {
             let line = format!("{}", record.msg());
             self.lines.lock().unwrap().push(line);
@@ -106,14 +108,15 @@ mod tests {
     fn make_chain(lines: Arc<Mutex<Vec<String>>>) -> Chain {
         let drain = MockDrain::new(lines);
         let logger = Logger::root(drain, o!());
-        let mut chain = Chain::new(|req: &mut Request| {
-            match req.method {
-                method::Get => Ok(Response::with((status::Ok, "OK"))),
-                _ => {
-                    let response = Response::with((status::BadRequest, "Bad"));
-                    let err = IronError { response, error: Box::new(MockError) };
-                    Err(err)
-                }
+        let mut chain = Chain::new(|req: &mut Request| match req.method {
+            method::Get => Ok(Response::with((status::Ok, "OK"))),
+            _ => {
+                let response = Response::with((status::BadRequest, "Bad"));
+                let err = IronError {
+                    response,
+                    error: Box::new(MockError),
+                };
+                Err(err)
             }
         });
         chain.link_after(RequestLogger::new(logger));
@@ -135,7 +138,7 @@ mod tests {
         let chain = make_chain(Arc::clone(&lines));
         match request::put("http://host:16016/fail", Headers::new(), "", &chain) {
             Ok(_) => panic!("Should have failed"),
-            _ => ()
+            _ => (),
         };
         let lines = lines.lock().unwrap().clone();
         assert_eq!(lines, vec![String::from("Request failed")]);
