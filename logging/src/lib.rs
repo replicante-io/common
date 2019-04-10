@@ -9,7 +9,6 @@ extern crate slog_async;
 extern crate slog_journald;
 extern crate slog_json;
 
-
 use std::io::stdout;
 use std::sync::Mutex;
 
@@ -24,18 +23,16 @@ use slog::Record;
 use slog_journald::JournaldDrain;
 use slog_json::Json;
 
-
 mod config;
 mod decorator;
 mod options;
 
-pub use config::Config;
-pub use config::LoggingLevel;
-pub use options::Opts;
+pub use self::config::Config;
+pub use self::config::LoggingLevel;
+pub use self::options::Opts;
 
-use config::LoggingBackend;
-use decorator::decorate;
-
+use self::config::LoggingBackend;
+use self::decorator::decorate;
 
 /// Creates a [`Logger`] based on the given configuration.
 ///
@@ -57,10 +54,9 @@ pub fn configure(config: Config, opts: &Opts) -> Logger {
                 .build();
             let drain = Mutex::new(drain).map(IgnoreResult::new);
             decorate(config, opts, drain)
-        },
+        }
     }
 }
-
 
 /// Creates a fixed [`Logger`] to be used until configuration is loaded.
 ///

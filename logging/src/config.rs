@@ -1,13 +1,12 @@
 use std::collections::BTreeMap;
 
-
 /// Logging configuration options.
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
     /// Flush logs asynchronously.
-    #[serde(default = "Config::default_async")]
-    pub async: bool,
+    #[serde(rename = "async", default = "Config::default_async_flush")]
+    pub async_flush: bool,
 
     /// The backend to send logs to.
     #[serde(default)]
@@ -40,7 +39,7 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Config {
         Config {
-            async: Config::default_async(),
+            async_flush: Config::default_async_flush(),
             backend: LoggingBackend::default(),
             level: LoggingLevel::default(),
             modules: BTreeMap::new(),
@@ -50,10 +49,13 @@ impl Default for Config {
 }
 
 impl Config {
-    fn default_async() -> bool { true }
-    fn default_verbose() -> bool { false }
+    fn default_async_flush() -> bool {
+        true
+    }
+    fn default_verbose() -> bool {
+        false
+    }
 }
-
 
 /// List of supported logging backends.
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
@@ -74,7 +76,6 @@ impl Default for LoggingBackend {
         LoggingBackend::Json
     }
 }
-
 
 /// Possible logging levels.
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]

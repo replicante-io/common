@@ -10,7 +10,6 @@ use slog::SendSyncUnwindSafeDrain;
 
 use super::super::Config;
 
-
 /// Alternative implementation of slog's [`LevelFilter`] with `Ok == ()`.
 ///
 /// The default [`LevelFilter`] implementation wraps `D::Ok` into an [`Option`].
@@ -46,9 +45,7 @@ impl<D: Drain> LevelFilter<D> {
     }
 
     pub fn modules(&mut self, prefixes: HashMap<String, Level>) {
-        let mut prefixes: Vec<PrefixLevel> = prefixes.into_iter()
-            .map(PrefixLevel::from)
-            .collect();
+        let mut prefixes: Vec<PrefixLevel> = prefixes.into_iter().map(PrefixLevel::from).collect();
         prefixes.sort_unstable_by_key(|p| p.prefix.clone());
         prefixes.reverse();
         self.modules = prefixes;
@@ -67,7 +64,6 @@ impl<D: Drain> Drain for LevelFilter<D> {
     }
 }
 
-
 /// Prefix based levels.
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct PrefixLevel {
@@ -84,19 +80,23 @@ impl From<(String, Level)> for PrefixLevel {
     }
 }
 
-
 /// Configures the desired logging level.
 pub fn level<D>(config: &Config, drain: D) -> LevelFilter<D>
-    where D: SendSyncUnwindSafeDrain<Ok = (), Err = Never>,
-          D: 'static + SendSyncRefUnwindSafeDrain<Ok = (), Err = Never>,
+where
+    D: SendSyncUnwindSafeDrain<Ok = (), Err = Never>,
+    D: 'static + SendSyncRefUnwindSafeDrain<Ok = (), Err = Never>,
 {
     let mut filter = LevelFilter::new(drain, config.level.clone().into());
     filter.modules(
-        config.modules.clone().into_iter().map(|(prefix, level)| (prefix, level.into())).collect()
+        config
+            .modules
+            .clone()
+            .into_iter()
+            .map(|(prefix, level)| (prefix, level.into()))
+            .collect(),
     );
     filter
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -184,18 +184,26 @@ mod tests {
         prefixes.insert("abc".into(), Level::Info);
         prefixes.insert("a".into(), Level::Error);
         filter.modules(prefixes);
-        assert_eq!(filter.modules, vec![PrefixLevel {
-            prefix: "test".into(),
-            level: Level::Debug,
-        }, PrefixLevel {
-            prefix: "ac".into(),
-            level: Level::Warning,
-        }, PrefixLevel {
-            prefix: "abc".into(),
-            level: Level::Info,
-        }, PrefixLevel {
-            prefix: "a".into(),
-            level: Level::Error,
-        }]);
+        assert_eq!(
+            filter.modules,
+            vec![
+                PrefixLevel {
+                    prefix: "test".into(),
+                    level: Level::Debug,
+                },
+                PrefixLevel {
+                    prefix: "ac".into(),
+                    level: Level::Warning,
+                },
+                PrefixLevel {
+                    prefix: "abc".into(),
+                    level: Level::Info,
+                },
+                PrefixLevel {
+                    prefix: "a".into(),
+                    level: Level::Error,
+                }
+            ]
+        );
     }
 }
