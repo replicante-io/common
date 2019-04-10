@@ -1,6 +1,5 @@
 use failure::Fail;
 
-
 /// Format the given `Fail` for display to the user.
 pub fn format_fail(fail: &dyn Fail) -> String {
     let mut message = String::new();
@@ -43,15 +42,13 @@ impl<E: Fail> From<E> for SerializableFail {
     }
 }
 
-
 #[cfg(test)]
 mod test {
-    use failure::Fail;
     use failure::err_msg;
+    use failure::Fail;
 
     use super::format_fail;
     use super::SerializableFail;
-
 
     #[test]
     fn flat_error() {
@@ -67,24 +64,28 @@ mod test {
             .context("some")
             .context("test");
         let msg = format_fail(&error);
-        assert_eq!(msg, r#"Error: test
+        assert_eq!(
+            msg,
+            r#"Error: test
     Caused by: some
     Caused by: more
-    Caused by: errors"#);
+    Caused by: errors"#
+        );
     }
 
     #[test]
     fn serializable_fail() {
-        let error = err_msg("test")
-            .context("chained")
-            .context("failures");
+        let error = err_msg("test").context("chained").context("failures");
         let error: SerializableFail = error.into();
         assert_eq!(error.error, "failures");
-        assert_eq!(error.layers, vec![
-            String::from("failures"),
-            String::from("chained"),
-            String::from("test")
-        ]);
+        assert_eq!(
+            error.layers,
+            vec![
+                String::from("failures"),
+                String::from("chained"),
+                String::from("test"),
+            ]
+        );
         assert_eq!(error.trace, None);
     }
 }

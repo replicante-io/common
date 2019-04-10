@@ -11,3 +11,4 @@ cargo fmt --verbose -- --check || true
 # But for crates that pass it we do not want to avoid regressions.
 cargo fmt --verbose -preplicante_agent_models -- --check
 cargo fmt --verbose -preplicante_logging -- --check
+cargo fmt --verbose -preplicante_util_failure -- --check

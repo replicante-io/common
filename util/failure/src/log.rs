@@ -1,9 +1,8 @@
 use failure::Fail;
 
-use slog::KV;
 use slog::Record;
 use slog::Serializer;
-
+use slog::KV;
 
 /// Extract failure information to be added to structured logging.
 pub fn failure_info(fail: &dyn Fail) -> FailureInfo {
@@ -13,13 +12,14 @@ pub fn failure_info(fail: &dyn Fail) -> FailureInfo {
         Some(bt) => Some(bt.to_string()),
     };
     FailureInfo {
-        cause: fail.cause().map(|cause| cause.find_root_cause().to_string()),
+        cause: fail
+            .cause()
+            .map(|cause| cause.find_root_cause().to_string()),
         layers: Fail::iter_chain(fail).count(),
         message: fail.to_string(),
         trace,
     }
 }
-
 
 /// Container for extracted failure information that implements `slog::KV`.
 pub struct FailureInfo {
@@ -30,26 +30,24 @@ pub struct FailureInfo {
 }
 
 impl KV for FailureInfo {
-   fn serialize(&self, _record: &Record, serializer: &mut Serializer) -> ::slog::Result {
-       if let Some(cause) = self.cause.as_ref() {
-           serializer.emit_str("error_cause", cause)?;
-       }
-       if let Some(trace) = self.trace.as_ref() {
-           serializer.emit_str("error_trace", trace)?;
-       }
-       serializer.emit_usize("error_layers", self.layers)?;
-       serializer.emit_str("error_message", &self.message)
-   }
+    fn serialize(&self, _record: &Record, serializer: &mut Serializer) -> ::slog::Result {
+        if let Some(cause) = self.cause.as_ref() {
+            serializer.emit_str("error_cause", cause)?;
+        }
+        if let Some(trace) = self.trace.as_ref() {
+            serializer.emit_str("error_trace", trace)?;
+        }
+        serializer.emit_usize("error_layers", self.layers)?;
+        serializer.emit_str("error_message", &self.message)
+    }
 }
-
 
 #[cfg(test)]
 mod test {
-    use failure::Fail;
     use failure::err_msg;
+    use failure::Fail;
 
     use super::failure_info;
-
 
     #[test]
     fn flat_error() {
