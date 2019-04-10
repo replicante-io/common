@@ -9,10 +9,11 @@ pub struct DatastoreInfo {
 
 impl DatastoreInfo {
     pub fn new<S1, S2, S3, S4>(cluster: S1, kind: S2, name: S3, version: S4) -> DatastoreInfo
-        where S1: Into<String>,
-              S2: Into<String>,
-              S3: Into<String>,
-              S4: Into<String>,
+    where
+        S1: Into<String>,
+        S2: Into<String>,
+        S3: Into<String>,
+        S4: Into<String>,
     {
         DatastoreInfo {
             cluster: cluster.into(),
@@ -23,10 +24,10 @@ impl DatastoreInfo {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use serde_json;
+
     use super::DatastoreInfo;
 
     #[test]

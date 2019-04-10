@@ -10,7 +10,6 @@ impl AgentInfo {
     }
 }
 
-
 /// Agent version details.
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
 pub struct AgentVersion {
@@ -21,9 +20,10 @@ pub struct AgentVersion {
 
 impl AgentVersion {
     pub fn new<S1, S2, S3>(checkout: S1, number: S2, taint: S3) -> AgentVersion
-        where S1: Into<String>,
-              S2: Into<String>,
-              S3: Into<String>,
+    where
+        S1: Into<String>,
+        S2: Into<String>,
+        S3: Into<String>,
     {
         AgentVersion {
             checkout: checkout.into(),
@@ -33,11 +33,11 @@ impl AgentVersion {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     mod info {
         use serde_json;
+
         use super::super::AgentInfo;
         use super::super::AgentVersion;
 
@@ -53,13 +53,15 @@ mod tests {
         fn to_json() {
             let agent = AgentInfo::new(AgentVersion::new("abc123", "1.2.3", "tainted"));
             let payload = serde_json::to_string(&agent).unwrap();
-            let expected = r#"{"version":{"checkout":"abc123","number":"1.2.3","taint":"tainted"}}"#;
+            let expected =
+                r#"{"version":{"checkout":"abc123","number":"1.2.3","taint":"tainted"}}"#;
             assert_eq!(payload, expected);
         }
     }
 
     mod version {
         use serde_json;
+
         use super::super::AgentVersion;
 
         #[test]

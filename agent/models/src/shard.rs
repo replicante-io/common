@@ -19,7 +19,6 @@ impl CommitOffset {
     }
 }
 
-
 /// Unit of commit offsets or replica lags.
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
 pub enum CommitUnit {
@@ -40,7 +39,6 @@ impl CommitUnit {
     }
 }
 
-
 /// Information about a shard on a node.
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
 pub struct Shard {
@@ -52,17 +50,22 @@ pub struct Shard {
 
 impl Shard {
     pub fn new<S>(
-        id: S, role: ShardRole, commit_offset: Option<CommitOffset>, lag: Option<CommitOffset>
+        id: S,
+        role: ShardRole,
+        commit_offset: Option<CommitOffset>,
+        lag: Option<CommitOffset>,
     ) -> Shard
-        where S: Into<String>,
+    where
+        S: Into<String>,
     {
         Shard {
             id: id.into(),
-            commit_offset, lag, role,
+            commit_offset,
+            lag,
+            role,
         }
     }
 }
-
 
 /// Information about shards on a node.
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
@@ -76,7 +79,6 @@ impl Shards {
     }
 }
 
-
 /// Possible shard roles.
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
 pub enum ShardRole {
@@ -87,13 +89,13 @@ pub enum ShardRole {
     Secondary,
 
     #[serde(rename = "unknown")]
-    Unknown(String)
+    Unknown(String),
 }
-
 
 #[cfg(test)]
 mod tests {
     use serde_json;
+
     use super::CommitOffset;
     use super::Shard;
     use super::ShardRole;
@@ -106,9 +108,10 @@ mod tests {
         );
         let shard: Shard = serde_json::from_str(payload).unwrap();
         let expected = Shard::new(
-            "shard-1", ShardRole::Primary,
+            "shard-1",
+            ShardRole::Primary,
             Some(CommitOffset::seconds(12345)),
-            Some(CommitOffset::seconds(0))
+            Some(CommitOffset::seconds(0)),
         );
         assert_eq!(shard, expected);
     }
@@ -116,9 +119,10 @@ mod tests {
     #[test]
     fn primary_to_json() {
         let shard = Shard::new(
-            "shard-1", ShardRole::Primary,
+            "shard-1",
+            ShardRole::Primary,
             Some(CommitOffset::seconds(12345)),
-            Some(CommitOffset::seconds(0))
+            Some(CommitOffset::seconds(0)),
         );
         let payload = serde_json::to_string(&shard).unwrap();
         let expected = concat!(
@@ -136,9 +140,10 @@ mod tests {
         );
         let shard: Shard = serde_json::from_str(payload).unwrap();
         let expected = Shard::new(
-            "shard-1", ShardRole::Unknown(String::from("Test")),
+            "shard-1",
+            ShardRole::Unknown(String::from("Test")),
             Some(CommitOffset::seconds(12345)),
-            Some(CommitOffset::seconds(0))
+            Some(CommitOffset::seconds(0)),
         );
         assert_eq!(shard, expected);
     }
@@ -146,9 +151,10 @@ mod tests {
     #[test]
     fn unkown_to_json() {
         let shard = Shard::new(
-            "shard-1", ShardRole::Unknown(String::from("Test")),
+            "shard-1",
+            ShardRole::Unknown(String::from("Test")),
             Some(CommitOffset::seconds(12345)),
-            Some(CommitOffset::seconds(0))
+            Some(CommitOffset::seconds(0)),
         );
         let payload = serde_json::to_string(&shard).unwrap();
         let expected = concat!(
@@ -166,8 +172,10 @@ mod tests {
         );
         let shard: Shard = serde_json::from_str(payload).unwrap();
         let expected = Shard::new(
-            "shard-1", ShardRole::Unknown(String::from("Test")),
-            None, Some(CommitOffset::unit(0, "offset"))
+            "shard-1",
+            ShardRole::Unknown(String::from("Test")),
+            None,
+            Some(CommitOffset::unit(0, "offset")),
         );
         assert_eq!(shard, expected);
     }
@@ -180,8 +188,10 @@ mod tests {
         );
         let shard: Shard = serde_json::from_str(payload).unwrap();
         let expected = Shard::new(
-            "shard-1", ShardRole::Unknown(String::from("Test")),
-            Some(CommitOffset::seconds(12345)), None
+            "shard-1",
+            ShardRole::Unknown(String::from("Test")),
+            Some(CommitOffset::seconds(12345)),
+            None,
         );
         assert_eq!(shard, expected);
     }
@@ -194,8 +204,10 @@ mod tests {
         );
         let shard: Shard = serde_json::from_str(payload).unwrap();
         let expected = Shard::new(
-            "shard-1", ShardRole::Unknown(String::from("Test")),
-            None, Some(CommitOffset::seconds(0))
+            "shard-1",
+            ShardRole::Unknown(String::from("Test")),
+            None,
+            Some(CommitOffset::seconds(0)),
         );
         assert_eq!(shard, expected);
     }
@@ -208,8 +220,10 @@ mod tests {
         );
         let shard: Shard = serde_json::from_str(payload).unwrap();
         let expected = Shard::new(
-            "shard-1", ShardRole::Unknown(String::from("Test")),
-            Some(CommitOffset::seconds(12345)), None
+            "shard-1",
+            ShardRole::Unknown(String::from("Test")),
+            Some(CommitOffset::seconds(12345)),
+            None,
         );
         assert_eq!(shard, expected);
     }
@@ -217,8 +231,10 @@ mod tests {
     #[test]
     fn no_commit_offset_to_json() {
         let shard = Shard::new(
-            "shard-1", ShardRole::Primary,
-            None, Some(CommitOffset::seconds(0))
+            "shard-1",
+            ShardRole::Primary,
+            None,
+            Some(CommitOffset::seconds(0)),
         );
         let payload = serde_json::to_string(&shard).unwrap();
         let expected = concat!(
@@ -231,8 +247,10 @@ mod tests {
     #[test]
     fn no_lag_to_json() {
         let shard = Shard::new(
-            "shard-1", ShardRole::Primary,
-            Some(CommitOffset::seconds(12345)), None
+            "shard-1",
+            ShardRole::Primary,
+            Some(CommitOffset::seconds(12345)),
+            None,
         );
         let payload = serde_json::to_string(&shard).unwrap();
         let expected = concat!(

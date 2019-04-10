@@ -4,11 +4,9 @@ extern crate serde_derive;
 #[cfg(test)]
 extern crate serde_json;
 
-
 mod agent;
 mod datastore;
 mod shard;
-
 
 pub use self::agent::AgentInfo;
 pub use self::agent::AgentVersion;
