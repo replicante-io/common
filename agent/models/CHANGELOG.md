@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - **BREAKING**: Replace datastore info attribute `cluster` with `cluster_id`.
+- **BREAKING**: Replace datastore info attribute `name` with `id`.
 
 ## 0.2.0 - 2019-02-20
 ### Changed
