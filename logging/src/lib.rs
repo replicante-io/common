@@ -48,12 +48,13 @@ pub fn configure(config: Config, opts: &Opts) -> Logger {
         #[cfg(feature = "journald")]
         LoggingBackend::Journald => decorate(config, opts, JournaldDrain.ignore_res()),
         LoggingBackend::Json => {
+            // rustc can't infer lifetimes correctly when using Record::module.
+            // Without this allow, clipply complainants that we do not use Record::module.
+            #[allow(clippy::redundant_closure)]
             let drain = Json::new(stdout())
                 .add_default_keys()
                 .add_key_value(o!(
                     "module" => FnValue(
-                        // rustc can't infer lifetimes correctly when using Record::module.
-                        #[allow(clippy::redundant_closure)]
                         |rinfo: &Record| rinfo.module()
                     )
                 ))
@@ -68,6 +69,9 @@ pub fn configure(config: Config, opts: &Opts) -> Logger {
 ///
 /// [`Logger`]: slog/struct.Logger.html
 pub fn starter(opts: &Opts) -> Logger {
+    // rustc can't infer lifetimes correctly when using Record::module.
+    // Without this allow, clipply complainants that we do not use Record::module.
+    #[allow(clippy::redundant_closure)]
     let drain = Json::new(stdout())
         .add_default_keys()
         .add_key_value(o!("module" => FnValue(|rinfo : &Record| rinfo.module())))

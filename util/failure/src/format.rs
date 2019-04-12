@@ -28,8 +28,8 @@ pub struct SerializableFail {
 
 impl<E: Fail> From<E> for SerializableFail {
     fn from(error: E) -> SerializableFail {
-        let layers = Fail::iter_chain(&error).map(|l| l.to_string()).collect();
-        let trace = match error.backtrace().map(|bt| bt.to_string()) {
+        let layers = Fail::iter_chain(&error).map(ToString::to_string).collect();
+        let trace = match error.backtrace().map(ToString::to_string) {
             None => None,
             Some(ref bt) if bt == "" => None,
             Some(bt) => Some(bt),
