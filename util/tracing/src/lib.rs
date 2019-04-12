@@ -10,11 +10,10 @@ extern crate serde_yaml;
 #[macro_use]
 extern crate slog;
 
-use opentracingrust::Tracer;
 use opentracingrust::utils::ReporterThread;
+use opentracingrust::Tracer;
 
 use slog::Logger;
-
 
 mod backends;
 mod config;
@@ -24,7 +23,6 @@ pub use self::config::Config;
 pub use self::error::Error;
 pub use self::error::ErrorKind;
 pub use self::error::Result;
-
 
 /// Tracer-dependent additional returns options.
 ///
@@ -36,7 +34,6 @@ pub enum TracerExtra {
     /// The tracer's `ReporterThread` that send spans to the backend.
     ReporterThread(ReporterThread),
 }
-
 
 /// Creates a new tracer based on the given configuration.
 pub fn tracer(config: Config, logger: Logger) -> Result<(Tracer, TracerExtra)> {

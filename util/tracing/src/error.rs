@@ -42,14 +42,12 @@ impl From<ErrorKind> for Error {
     }
 }
 
-
 /// Exhaustive list of possible errors emitted by this crate.
 #[derive(Debug, Fail)]
 pub enum ErrorKind {
     #[fail(display = "configuration error: {}", _0)]
     Config(String),
 }
-
 
 /// Short form alias for functions returning `Error`s.
 pub type Result<T> = ::std::result::Result<T, Error>;

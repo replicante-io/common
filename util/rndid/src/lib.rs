@@ -4,7 +4,6 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 
-
 use std::fmt;
 use std::str::FromStr;
 
@@ -12,7 +11,6 @@ use data_encoding::DecodeError;
 use data_encoding::DecodeKind;
 use data_encoding::HEXLOWER_PERMISSIVE;
 use rand::Rng;
-
 
 /// Randomly generated (probably) unique IDs.
 ///
@@ -47,7 +45,7 @@ impl FromStr for RndId {
                     .map_err(|e| e.error)?;
                 // But still store it as a string.
                 Ok(RndId(String::from(s).to_lowercase()))
-            },
+            }
             Ok(_) => Err(DecodeError {
                 position: 0,
                 kind: DecodeKind::Length,
@@ -56,7 +54,6 @@ impl FromStr for RndId {
         }
     }
 }
-
 
 #[cfg(test)]
 mod tests {

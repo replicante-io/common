@@ -50,7 +50,13 @@ pub fn configure(config: Config, opts: &Opts) -> Logger {
         LoggingBackend::Json => {
             let drain = Json::new(stdout())
                 .add_default_keys()
-                .add_key_value(o!("module" => FnValue(|rinfo : &Record| rinfo.module())))
+                .add_key_value(o!(
+                    "module" => FnValue(
+                        // rustc can't infer lifetimes correctly when using Record::module.
+                        #[allow(clippy::redundant_closure)]
+                        |rinfo: &Record| rinfo.module()
+                    )
+                ))
                 .build();
             let drain = Mutex::new(drain).map(IgnoreResult::new);
             decorate(config, opts, drain)
