@@ -1,5 +1,5 @@
 /// Agent-specific information.
-#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub struct AgentInfo {
     pub version: AgentVersion,
 }
@@ -11,7 +11,7 @@ impl AgentInfo {
 }
 
 /// Agent version details.
-#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub struct AgentVersion {
     pub checkout: String,
     pub number: String,

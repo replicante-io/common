@@ -1,5 +1,5 @@
 /// Information about the current commit offset of a shard or replication lag.
-#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub struct CommitOffset {
     pub unit: CommitUnit,
     pub value: i64,
@@ -20,7 +20,7 @@ impl CommitOffset {
 }
 
 /// Unit of commit offsets or replica lags.
-#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum CommitUnit {
     #[serde(rename = "seconds")]
     Seconds,
@@ -40,7 +40,7 @@ impl CommitUnit {
 }
 
 /// Information about a shard on a node.
-#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub struct Shard {
     pub commit_offset: Option<CommitOffset>,
     pub id: String,
@@ -68,7 +68,7 @@ impl Shard {
 }
 
 /// Information about shards on a node.
-#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub struct Shards {
     pub shards: Vec<Shard>,
 }
@@ -80,7 +80,7 @@ impl Shards {
 }
 
 /// Possible shard roles.
-#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum ShardRole {
     #[serde(rename = "primary")]
     Primary,
