@@ -6,6 +6,7 @@ members = [
   "util/iron",
   "util/rndid",
   "util/tracing",
+  "util/upkeep",
 ]
 
 # This patch is needed to make openssl (needed by kafka) work with openssl 1.0+

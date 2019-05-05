@@ -1,0 +1,26 @@
+[package]
+name = "replicante_util_upkeep"
+version = "0.1.0"
+authors = ["Stefano Pogliani <stefano@spogliani.net>"]
+edition = "2018"
+
+description = "Controll when a process should exit"
+documentation = "https://docs.rs/replicante_util_upkeep"
+homepage = "https://www.replicante.io/"
+repository = "https://github.com/replicante-io/common"
+readme = "../../README.md"
+keywords = ["replicante", "utility"]
+license = "MIT"
+
+
+[dependencies]
+crossbeam-channel = "^0.3.8"
+humthreads = "^0.1.2"
+signal-hook = "^0.1.9"
+slog = "^2.4.1"
+
+replicante_util_failure = { version = "^0.1.0", path = "../failure" }
+
+
+[dev-dependencies]
+nix = "^0.13.0"
