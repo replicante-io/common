@@ -101,6 +101,7 @@ impl Upkeep {
                     // Complete the operation to avoid panics.
                     // If we get a signal or the sender is dropped, terminate the process.
                     let _ = operation.recv(&self.signal_receiver);
+                    warn!(self.logger, "Shutdown: signal received");
                     break;
                 }
                 n => {
@@ -109,7 +110,7 @@ impl Upkeep {
                         Ok(()) => false,
                         Err(error) => match error.kind() {
                             HumthreadsErrorKind::Join(_) => {
-                                warn!(self.logger, "Thread paniced"; failure_info(&error));
+                                error!(self.logger, "Thread paniced"; failure_info(&error));
                                 clean_exit = false;
                                 true
                             }
@@ -117,6 +118,7 @@ impl Upkeep {
                         },
                     };
                     if paniced || thread.required {
+                        warn!(self.logger, "Shutdown: thread exited");
                         break;
                     }
                 }
@@ -127,8 +129,6 @@ impl Upkeep {
             self.threads.remove(index - 1);
         }
 
-        // Drop the selector set to release references.
-        //drop(set);
         self.shutdown();
         self.join_threads() && clean_exit
     }
@@ -192,8 +192,14 @@ impl Upkeep {
         self.threads.push(thread);
     }
 
+    /// Set the logger to be used by the `Upkeep` instance.
+    pub fn set_logger(&mut self, logger: Logger) {
+        self.logger = logger;
+    }
+
     /// Wait for each thread to join.
     fn join_threads(&mut self) -> bool {
+        debug!(self.logger, "Joining with registered threads");
         let mut clean_exit = true;
         for thread in self.threads.drain(..) {
             if let Err(error) = thread.handle.join() {
@@ -201,7 +207,7 @@ impl Upkeep {
                     debug!(self.logger, "Joined thread twice");
                     continue;
                 }
-                warn!(self.logger, "Thread paniced"; failure_info(&error));
+                error!(self.logger, "Thread paniced"; failure_info(&error));
                 clean_exit = false;
             }
         }
@@ -225,9 +231,11 @@ impl Upkeep {
 
     /// Handle process shutdown and trigger callback notifications.
     fn shutdown(&mut self) {
+        debug!(self.logger, "Requesting shutdowns for registered threads");
         for thread in &self.threads {
             thread.handle.request_shutdown();
         }
+        debug!(self.logger, "Executing shutdown callbacks");
         for callback in &self.callbacks {
             callback();
         }
