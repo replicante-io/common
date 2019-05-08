@@ -15,7 +15,7 @@ license = "MIT"
 
 [dependencies]
 crossbeam-channel = "^0.3.8"
-humthreads = "^0.1.2"
+humthreads = "^0.1.3"
 signal-hook = "^0.1.9"
 slog = "^2.4.1"
 

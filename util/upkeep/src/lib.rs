@@ -11,11 +11,10 @@ extern crate replicante_util_failure;
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
-use std::time::Duration;
 
 use crossbeam_channel::unbounded;
 use crossbeam_channel::Receiver;
-use crossbeam_channel::RecvTimeoutError;
+use crossbeam_channel::Select;
 use crossbeam_channel::Sender;
 use humthreads::ErrorKind as HumthreadsErrorKind;
 use humthreads::MapThread;
@@ -59,33 +58,25 @@ use replicante_util_failure::failure_info;
 /// ```
 pub struct Upkeep {
     callbacks: Vec<Box<Fn() -> ()>>,
-    join_timeout: Duration,
     logger: Logger,
     registered_signals: Vec<SigId>,
-    running: bool,
     signal_flag: Arc<AtomicBool>,
     signal_receiver: Receiver<()>,
     signal_sender: Option<Sender<()>>,
-    signal_timeout: Duration,
     threads: Vec<ThreadMeta>,
 }
 
 impl Upkeep {
     pub fn new() -> Upkeep {
-        let join_timeout = Duration::from_millis(10);
         let (signal_sender, signal_receiver) = unbounded();
         let signal_sender = Some(signal_sender);
-        let signal_timeout = Duration::from_secs(5);
         Upkeep {
             callbacks: Vec::new(),
-            join_timeout,
             logger: Logger::root(Discard, o!()),
             registered_signals: Vec::new(),
-            running: true,
             signal_flag: Arc::new(AtomicBool::new(false)),
             signal_receiver,
             signal_sender,
-            signal_timeout,
             threads: Vec::new(),
         }
     }
@@ -95,32 +86,50 @@ impl Upkeep {
     /// # Returns
     /// This method returns `true` if the process shuts down cleanly.
     pub fn keepalive(&mut self) -> bool {
+        // Use crossbeam_channel::Select to poll for signals or thread exists:
+        //
+        //   - Generate a Select set to wait on.
+        //   - Use the select API to wait.
+        //   - When a thread joins remove it from the vector.
         let mut clean_exit = true;
-        'keepalive: while self.running {
-            // Stop when we get a signal.
-            match self.signal_receiver.recv_timeout(self.signal_timeout) {
-                Err(RecvTimeoutError::Disconnected) => break,
-                Err(RecvTimeoutError::Timeout) => (),
-                Ok(()) => break,
+        loop {
+            let mut set = self.select_set();
+            let operation = set.select();
+            let index = operation.index();
+            match index {
+                0 => {
+                    // Complete the operation to avoid panics.
+                    // If we get a signal or the sender is dropped, terminate the process.
+                    let _ = operation.recv(&self.signal_receiver);
+                    break;
+                }
+                n => {
+                    let thread = &self.threads[n - 1];
+                    let paniced = match thread.handle.select_join(operation) {
+                        Ok(()) => false,
+                        Err(error) => match error.kind() {
+                            HumthreadsErrorKind::Join(_) => {
+                                warn!(self.logger, "Thread paniced"; failure_info(&error));
+                                clean_exit = false;
+                                true
+                            }
+                            _ => false,
+                        }
+                    };
+                    if paniced || thread.required {
+                        break;
+                    }
+
+                }
             };
 
-            // Stop when a thread panics.
-            for thread in self.threads.iter_mut() {
-                match thread.handle.join_timeout(self.join_timeout) {
-                    Ok(()) if thread.required => break 'keepalive,
-                    Ok(()) => (),
-                    Err(error) => match error.kind() {
-                        HumthreadsErrorKind::JoinedAlready => (),
-                        HumthreadsErrorKind::JoinTimeout => (),
-                        _ => {
-                            warn!(self.logger, "Thread paniced"; failure_info(&error));
-                            clean_exit = false;
-                            break 'keepalive;
-                        }
-                    },
-                };
-            }
+            // Can reach here only if an optional thread exited without a panic.
+            drop(set);
+            self.threads.remove(index - 1);
         }
+
+        // Drop the selector set to release references.
+        //drop(set);
         self.shutdown();
         self.join_threads() && clean_exit
     }
@@ -184,15 +193,10 @@ impl Upkeep {
         self.threads.push(thread);
     }
 
-    /// Set the timeout to wait on a signal before checking threads.
-    pub fn signal_timeout(&mut self, timeout: Duration) {
-        self.signal_timeout = timeout;
-    }
-
     /// Wait for each thread to join.
     fn join_threads(&mut self) -> bool {
         let mut clean_exit = true;
-        for mut thread in self.threads.drain(..) {
+        for thread in self.threads.drain(..) {
             if let Err(error) = thread.handle.join() {
                 if let HumthreadsErrorKind::JoinedAlready = error.kind() {
                     debug!(self.logger, "Joined thread twice");
@@ -205,9 +209,23 @@ impl Upkeep {
         clean_exit
     }
 
+    /// Return a crossbeam_channel::Select set to wait for signals or threads.
+    ///
+    /// The returned set has the following propertied:
+    ///
+    ///   - idx 0 == signals receiver
+    ///   - idx n == self.threads.get(n - 1)
+    fn select_set<'a, 'b: 'a>(&'b self) -> Select<'a> {
+        let mut set = Select::new();
+        set.recv(&self.signal_receiver);
+        for thread in &self.threads {
+            thread.handle.select_add(&mut set);
+        }
+        set
+    }
+
     /// Handle process shutdown and trigger callback notifications.
     fn shutdown(&mut self) {
-        self.running = false;
         for thread in &self.threads {
             thread.handle.request_shutdown();
         }
@@ -290,7 +308,6 @@ mod tests {
         let count = Arc::new(AtomicUsize::new(0));
         let inner_count = Arc::clone(&count);
         let mut up = Upkeep::new();
-        up.signal_timeout(Duration::from_millis(10));
         let optional = Builder::new("thread_optional_two")
             .spawn(|_| ::std::thread::sleep(Duration::from_millis(10)))
             .expect("to spawn test thread");
@@ -317,7 +334,6 @@ mod tests {
         let flag = Arc::new(AtomicBool::new(false));
         let inner_flag = Arc::clone(&flag);
         let mut up = Upkeep::new();
-        up.signal_timeout(Duration::from_millis(10));
         let thread = Builder::new("thread_panics")
             .spawn(move |_| {
                 inner_flag.store(true, Ordering::Relaxed);
