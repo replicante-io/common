@@ -89,24 +89,20 @@ impl Upkeep {
         // Use crossbeam_channel::Select to poll for signals or thread exists:
         //
         //   - Generate a Select set to wait on.
-        //   - Use the select API to wait.
+        //   - Use the ready API to wait (select API seems to deadlock unless with timeout).
         //   - When a thread joins remove it from the vector.
         let mut clean_exit = true;
         loop {
             let mut set = self.select_set();
-            let operation = set.select();
-            let index = operation.index();
+            let index = set.ready();
             match index {
                 0 => {
-                    // Complete the operation to avoid panics.
-                    // If we get a signal or the sender is dropped, terminate the process.
-                    let _ = operation.recv(&self.signal_receiver);
                     warn!(self.logger, "Shutdown: signal received");
                     break;
                 }
                 n => {
                     let thread = &self.threads[n - 1];
-                    let paniced = match thread.handle.select_join(operation) {
+                    let paniced = match thread.handle.join() {
                         Ok(()) => false,
                         Err(error) => match error.kind() {
                             HumthreadsErrorKind::Join(_) => {
