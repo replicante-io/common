@@ -114,12 +114,11 @@ impl Upkeep {
                                 true
                             }
                             _ => false,
-                        }
+                        },
                     };
                     if paniced || thread.required {
                         break;
                     }
-
                 }
             };
 
@@ -262,10 +261,6 @@ mod tests {
     use std::sync::Arc;
     use std::time::Duration;
 
-    use nix::sys::signal::kill;
-    use nix::sys::signal::SIGINT;
-    use nix::unistd::Pid;
-
     use humthreads::Builder;
 
     use super::Upkeep;
@@ -279,29 +274,6 @@ mod tests {
         up.shutdown();
         assert_eq!(true, flag.load(Ordering::Relaxed));
     }
-
-    #[test]
-    fn signal() {
-        let flag = Arc::new(AtomicBool::new(false));
-        let mut up = Upkeep::new();
-        let inner_flag = Arc::clone(&flag);
-        up.register_signal().unwrap();
-        up.on_shutdown(move || inner_flag.store(true, Ordering::Relaxed));
-        kill(Pid::this(), SIGINT).unwrap();
-        let clean = up.keepalive();
-        assert_eq!(true, flag.load(Ordering::Relaxed));
-        assert_eq!(true, clean);
-    }
-
-    // This test aborts the entrie tests process.
-    // On one hand: yey it works! On the other: can't test really.
-    //#[test]
-    //fn signal_kill() {
-    //    let mut up = Upkeep::new();
-    //    up.register_signal().unwrap();
-    //    kill(Pid::this(), SIGINT).unwrap();
-    //    kill(Pid::this(), SIGINT).unwrap();
-    //}
 
     #[test]
     fn thread_optional() {
@@ -368,4 +340,74 @@ mod tests {
         assert_eq!(true, flag.load(Ordering::Relaxed));
         assert_eq!(true, clean);
     }
+
+    // Tests below are commented out because they cause undefined behaviours.
+    // Running this test as well as other can lead to a panic from the inners of stdlib threads:
+
+    //use nix::sys::signal::kill;
+    //use nix::sys::signal::SIGINT;
+    //use nix::unistd::Pid;
+
+    //#[test]
+    // ```
+    // thread '<unnamed>' panicked at 'assertion failed: c.borrow().is_none()', src/libstd/sys_common/thread_info.rs:37:26
+    // test tests::signal ... ok
+    // stack backtrace:
+    //    0: std::sys::unix::backtrace::tracing::imp::unwind_backtrace
+    //              at src/libstd/sys/unix/backtrace/tracing/gcc_s.rs:39
+    //    1: std::sys_common::backtrace::_print
+    //              at src/libstd/sys_common/backtrace.rs:70
+    //    2: std::panicking::default_hook::{{closure}}
+    //              at src/libstd/sys_common/backtrace.rs:58
+    //              at src/libstd/panicking.rs:200
+    //    3: std::panicking::default_hook
+    //              at src/libstd/panicking.rs:215
+    //    4: std::panicking::rust_panic_with_hook
+    //              at src/libstd/panicking.rs:478
+    //    5: std::panicking::begin_panic
+    //              at src/libstd/panicking.rs:412
+    //    6: std::sys_common::thread_info::set
+    //              at src/libstd/sys_common/thread_info.rs:37
+    //              at src/libstd/thread/local.rs:300
+    //              at src/libstd/thread/local.rs:246
+    //              at src/libstd/sys_common/thread_info.rs:37
+    //    7: std::thread::Builder::spawn_unchecked::{{closure}}
+    //              at /rustc/91856ed52c58aa5ba66a015354d1cc69e9779bdf/src/libstd/thread/mod.rs:466
+    //    8: <F as alloc::boxed::FnBox<A>>::call_box
+    //              at /rustc/91856ed52c58aa5ba66a015354d1cc69e9779bdf/src/liballoc/boxed.rs:749
+    //    9: std::sys::unix::thread::Thread::new::thread_start
+    //              at /rustc/91856ed52c58aa5ba66a015354d1cc69e9779bdf/src/liballoc/boxed.rs:759
+    //              at src/libstd/sys_common/thread.rs:14
+    //              at src/libstd/sys/unix/thread.rs:81
+    //   10: start_thread
+    //   11: clone
+    // fatal runtime error: failed to initiate panic, error 5
+    // error: process didn't exit successfully: `replicante_util_upkeep-3a7217a487d2749e` (signal: 6, SIGABRT: process abort signal)
+    // ```
+    //
+    // Use the below command (after un-commenting this code) to see the error:
+    // ```
+    // for i in `seq 1 100`; do RUST_BACKTRACE=1 cargo test -p replicante_util_upkeep || break; done
+    // ```
+    //fn signal() {
+    //    let flag = Arc::new(AtomicBool::new(false));
+    //    let mut up = Upkeep::new();
+    //    let inner_flag = Arc::clone(&flag);
+    //    up.register_signal().unwrap();
+    //    up.on_shutdown(move || inner_flag.store(true, Ordering::Relaxed));
+    //    kill(Pid::this(), SIGINT).unwrap();
+    //    let clean = up.keepalive();
+    //    assert_eq!(true, flag.load(Ordering::Relaxed));
+    //    assert_eq!(true, clean);
+    //}
+
+    // This test aborts the entrie tests process.
+    // On one hand: yey it works! On the other: can't test really.
+    //#[test]
+    //fn signal_kill() {
+    //    let mut up = Upkeep::new();
+    //    up.register_signal().unwrap();
+    //    kill(Pid::this(), SIGINT).unwrap();
+    //    kill(Pid::this(), SIGINT).unwrap();
+    //}
 }
