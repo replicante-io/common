@@ -15,8 +15,14 @@ pub fn failure_info(fail: &dyn Fail) -> FailureInfo {
         cause: fail
             .cause()
             .map(|cause| cause.find_root_cause().to_string()),
+        cause_name: fail
+            .cause()
+            .map(|cause| cause.find_root_cause())
+            .and_then(Fail::name)
+            .map(String::from),
         layers: Fail::iter_chain(fail).count(),
         message: fail.to_string(),
+        name: fail.name().map(String::from),
         trace,
     }
 }
@@ -24,8 +30,10 @@ pub fn failure_info(fail: &dyn Fail) -> FailureInfo {
 /// Container for extracted failure information that implements `slog::KV`.
 pub struct FailureInfo {
     cause: Option<String>,
+    cause_name: Option<String>,
     layers: usize,
     message: String,
+    name: Option<String>,
     trace: Option<String>,
 }
 
@@ -34,11 +42,18 @@ impl KV for FailureInfo {
         if let Some(cause) = self.cause.as_ref() {
             serializer.emit_str("error_cause", cause)?;
         }
+        serializer.emit_usize("error_layers", self.layers)?;
+        serializer.emit_str("error_message", &self.message)?;
+        if let Some(cause_name) = self.cause_name.as_ref() {
+            serializer.emit_str("error_cause_name", cause_name)?;
+        }
+        if let Some(name) = self.name.as_ref() {
+            serializer.emit_str("error_name", name)?;
+        }
         if let Some(trace) = self.trace.as_ref() {
             serializer.emit_str("error_trace", trace)?;
         }
-        serializer.emit_usize("error_layers", self.layers)?;
-        serializer.emit_str("error_message", &self.message)
+        Ok(())
     }
 }
 
