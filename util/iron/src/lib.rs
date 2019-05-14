@@ -19,6 +19,7 @@ mod error;
 mod logging;
 mod metrics;
 mod router;
+mod sentry;
 mod tracing;
 
 pub use self::error::into_ironerror;
@@ -28,6 +29,7 @@ pub use self::metrics::observe::MetricsMiddleware;
 pub use self::router::RootDescriptor;
 pub use self::router::RootedRouter;
 pub use self::router::Router;
+pub use self::sentry::SentryMiddlewere;
 pub use self::tracing::carrier::HeadersCarrier;
 
 /// Extracts the request method as a string.
