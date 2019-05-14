@@ -29,7 +29,7 @@ pub use self::metrics::observe::MetricsMiddleware;
 pub use self::router::RootDescriptor;
 pub use self::router::RootedRouter;
 pub use self::router::Router;
-pub use self::sentry::SentryMiddlewere;
+pub use self::sentry::SentryMiddleware;
 pub use self::tracing::carrier::HeadersCarrier;
 
 /// Extracts the request method as a string.

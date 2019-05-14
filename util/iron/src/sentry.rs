@@ -41,17 +41,17 @@ fn request_context(request: &Request) -> SentryRequest {
 ///
 /// It is worth noting that handlers that fail with an IronError that carries
 /// a successful response (status < 400) will also not be logged.
-pub struct SentryMiddlewere {
+pub struct SentryMiddleware {
     status_above: u16,
 }
 
-impl SentryMiddlewere {
-    pub fn new(status_above: u16) -> SentryMiddlewere {
-        SentryMiddlewere { status_above }
+impl SentryMiddleware {
+    pub fn new(status_above: u16) -> SentryMiddleware {
+        SentryMiddleware { status_above }
     }
 }
 
-impl AfterMiddleware for SentryMiddlewere {
+impl AfterMiddleware for SentryMiddleware {
     fn after(&self, request: &mut Request, response: Response) -> IronResult<Response> {
         let code = response
             .status
@@ -100,9 +100,9 @@ impl AfterMiddleware for SentryMiddlewere {
     }
 }
 
-impl Default for SentryMiddlewere {
-    fn default() -> SentryMiddlewere {
-        SentryMiddlewere::new(400)
+impl Default for SentryMiddleware {
+    fn default() -> SentryMiddleware {
+        SentryMiddleware::new(400)
     }
 }
 
@@ -122,7 +122,7 @@ mod tests {
 
     use sentry::test::with_captured_events;
 
-    use super::SentryMiddlewere;
+    use super::SentryMiddleware;
 
     #[derive(Debug)]
     struct MockError;
@@ -138,7 +138,7 @@ mod tests {
     }
 
     fn make_chain(
-        middleware: SentryMiddlewere,
+        middleware: SentryMiddleware,
         code: status::Status,
         message: &'static str,
     ) -> Chain {
@@ -159,7 +159,7 @@ mod tests {
 
     #[test]
     fn after_200() {
-        let middleware = SentryMiddlewere::default();
+        let middleware = SentryMiddleware::default();
         let chain = make_chain(middleware, status::Ok, "OK Response");
         let headers = Headers::new();
         let events = with_captured_events(|| {
@@ -170,7 +170,7 @@ mod tests {
 
     #[test]
     fn after_404() {
-        let middleware = SentryMiddlewere::default();
+        let middleware = SentryMiddleware::default();
         let chain = make_chain(middleware, status::NotFound, "NaN");
         let mut headers = Headers::new();
         headers.set(Origin::new("http", "host", Some(16916)));
@@ -193,7 +193,7 @@ mod tests {
 
     #[test]
     fn after_500() {
-        let middleware = SentryMiddlewere::default();
+        let middleware = SentryMiddleware::default();
         let chain = make_chain(middleware, status::InternalServerError, "");
         let headers = Headers::new();
         let mut events = with_captured_events(|| {
@@ -205,7 +205,7 @@ mod tests {
 
     #[test]
     fn catch_200() {
-        let middleware = SentryMiddlewere::default();
+        let middleware = SentryMiddleware::default();
         let chain = make_chain(middleware, status::Ok, "NaN");
         let headers = Headers::new();
         let events = with_captured_events(|| {
@@ -217,7 +217,7 @@ mod tests {
 
     #[test]
     fn catch_404() {
-        let middleware = SentryMiddlewere::default();
+        let middleware = SentryMiddleware::default();
         let chain = make_chain(middleware, status::NotFound, "NaN");
         let mut headers = Headers::new();
         headers.set(Origin::new("http", "host", Some(16916)));
@@ -231,7 +231,7 @@ mod tests {
 
     #[test]
     fn catch_500() {
-        let middleware = SentryMiddlewere::default();
+        let middleware = SentryMiddleware::default();
         let chain = make_chain(middleware, status::InternalServerError, "");
         let headers = Headers::new();
         let mut events = with_captured_events(|| {
