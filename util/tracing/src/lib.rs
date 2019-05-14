@@ -7,8 +7,9 @@ extern crate serde;
 extern crate serde_derive;
 #[cfg(test)]
 extern crate serde_yaml;
-#[macro_use]
 extern crate slog;
+
+extern crate replicante_util_failure;
 
 use opentracingrust::utils::ReporterThread;
 use opentracingrust::Tracer;

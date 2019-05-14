@@ -23,6 +23,7 @@ use signal_hook::SigId;
 use slog::Discard;
 use slog::Logger;
 
+use replicante_util_failure::capture_fail;
 use replicante_util_failure::failure_info;
 
 /// Block the calling thread until shutdown is requested.
@@ -106,14 +107,23 @@ impl Upkeep {
                         Ok(()) => false,
                         Err(error) => match error.kind() {
                             HumthreadsErrorKind::Join(_) => {
-                                error!(self.logger, "Thread paniced"; failure_info(&error));
+                                capture_fail!(
+                                    &error,
+                                    self.logger,
+                                    "Thread paniced";
+                                    failure_info(&error),
+                                );
                                 clean_exit = false;
                                 true
                             }
                             _ => false,
                         },
                     };
-                    if paniced || thread.required {
+                    if paniced {
+                        warn!(self.logger, "Shutdown: thread paniced");
+                        break;
+                    }
+                    if thread.required {
                         warn!(self.logger, "Shutdown: thread exited");
                         break;
                     }
@@ -203,7 +213,7 @@ impl Upkeep {
                     debug!(self.logger, "Joined thread twice");
                     continue;
                 }
-                error!(self.logger, "Thread paniced"; failure_info(&error));
+                capture_fail!(&error, self.logger, "Thread paniced"; failure_info(&error));
                 clean_exit = false;
             }
         }

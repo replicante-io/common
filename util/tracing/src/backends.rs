@@ -1,12 +1,14 @@
+use failure::format_err;
 use opentracingrust::tracers::NoopTracer;
 use opentracingrust::utils::ReporterThread;
 use opentracingrust::Tracer;
-
 use opentracingrust_zipkin::KafkaCollector;
 use opentracingrust_zipkin::ZipkinEndpoint;
 use opentracingrust_zipkin::ZipkinTracer;
-
 use slog::Logger;
+
+use replicante_util_failure::capture_fail;
+use replicante_util_failure::failure_info;
 
 use super::config::ZipkinConfig;
 use super::Result;
@@ -29,7 +31,14 @@ pub fn zipkin(config: ZipkinConfig, logger: Logger) -> Result<(Tracer, TracerExt
     let (tracer, receiver) = ZipkinTracer::new();
     let reporter = ReporterThread::new(receiver, move |span| {
         if let Err(error) = collector.collect(span) {
-            error!(logger, "ZipkinTracer failed to report span"; "error" => ?error);
+            // TODO: once error implements std::Error drop the format.
+            let error = format_err!("{:?}", error);
+            capture_fail!(
+                error.as_fail(),
+                logger,
+                "ZipkinTracer failed to report span";
+                failure_info(error.as_fail()),
+            );
         }
     });
     Ok((tracer, TracerExtra::ReporterThread(reporter)))
