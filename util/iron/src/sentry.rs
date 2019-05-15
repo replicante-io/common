@@ -53,10 +53,8 @@ impl SentryMiddleware {
 
 impl AfterMiddleware for SentryMiddleware {
     fn after(&self, request: &mut Request, response: Response) -> IronResult<Response> {
-        let code = response
-            .status
-            .expect("response must have a status")
-            .to_u16();
+        let status = response.status.expect("response must have a status");
+        let code = status.to_u16();
         // Skip success responses.
         if code < self.status_above {
             return Ok(response);
@@ -67,6 +65,7 @@ impl AfterMiddleware for SentryMiddleware {
         let context = request_context(request);
         capture_event(SentryEvent {
             level,
+            message: Some(format!("HTTP {}", status)),
             request: Some(context),
             ..Default::default()
         });
@@ -76,13 +75,10 @@ impl AfterMiddleware for SentryMiddleware {
     }
 
     fn catch(&self, request: &mut Request, error: IronError) -> IronResult<Response> {
-        let code = error
-            .response
-            .status
-            .expect("response must have a status")
-            .to_u16();
+        let status = error.response.status.expect("response must have a status");
+        let code = status.to_u16();
         // Skip success responses.
-        if code < 400 {
+        if code < self.status_above {
             return Err(error);
         }
 
@@ -91,6 +87,7 @@ impl AfterMiddleware for SentryMiddleware {
         let context = request_context(request);
         capture_event(SentryEvent {
             level,
+            message: Some(format!("HTTP {}", status)),
             request: Some(context),
             ..Default::default()
         });
@@ -179,6 +176,7 @@ mod tests {
         });
         let event = events.remove(0);
         assert_eq!(sentry::Level::Warning, event.level);
+        assert_eq!("HTTP 404 Not Found", event.message.unwrap());
         let context = event.request.expect("no request context found");
         assert_eq!("/some/endpoint", context.url.unwrap().path());
         assert_eq!("GET", context.method.unwrap());
@@ -201,6 +199,7 @@ mod tests {
         });
         let event = events.remove(0);
         assert_eq!(sentry::Level::Error, event.level);
+        assert_eq!("HTTP 500 Internal Server Error", event.message.unwrap());
     }
 
     #[test]
@@ -227,6 +226,7 @@ mod tests {
         });
         let event = events.remove(0);
         assert_eq!(sentry::Level::Warning, event.level);
+        assert_eq!("HTTP 404 Not Found", event.message.unwrap());
     }
 
     #[test]
@@ -240,5 +240,6 @@ mod tests {
         });
         let event = events.remove(0);
         assert_eq!(sentry::Level::Error, event.level);
+        assert_eq!("HTTP 500 Internal Server Error", event.message.unwrap());
     }
 }
