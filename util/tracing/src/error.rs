@@ -47,6 +47,9 @@ impl From<ErrorKind> for Error {
 pub enum ErrorKind {
     #[fail(display = "configuration error: {}", _0)]
     Config(String),
+
+    #[fail(display = "unable to spawn {} thread", _0)]
+    ThreadSpawn(&'static str),
 }
 
 /// Short form alias for functions returning `Error`s.
