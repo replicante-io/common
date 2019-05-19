@@ -46,9 +46,6 @@ pub enum ZipkinConfig {
 /// Zipkin HTTP transport options.
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub struct ZipkinHttp {
-    /// Target URL to post spans to.
-    pub url: String,
-
     /// Number of buffered spans that should trigger a flush.
     #[serde(default = "ZipkinHttp::default_flush_count")]
     pub flush_count: usize,
@@ -60,6 +57,9 @@ pub struct ZipkinHttp {
     /// Custom headers to attach to POST requests.
     #[serde(default)]
     pub headers: BTreeMap<String, String>,
+
+    /// Target URL to post spans to.
+    pub url: String,
 }
 
 impl ZipkinHttp {

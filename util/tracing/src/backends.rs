@@ -25,7 +25,6 @@ use super::Result;
 /// Creates a noop tracer that discards all spans.
 pub fn noop() -> Result<Tracer> {
     let (tracer, _receiver) = NoopTracer::new();
-    //let reporter = ReporterThread::new(receiver, NoopTracer::report);
     Ok(tracer)
 }
 
@@ -62,11 +61,11 @@ pub fn zipkin(config: ZipkinConfig, opts: Opts) -> Result<Tracer> {
                 )
                 .headers(headers);
             let collector = HttpCollector::new(options);
-            ZipkinCollector::Http(collector)
+            ZipkinCollector::Http(Box::new(collector))
         }
         ZipkinConfig::Kafka(config) => {
             let collector = KafkaCollector::new(endpoint, config.topic, config.kafka);
-            ZipkinCollector::Kafka(collector)
+            ZipkinCollector::Kafka(Box::new(collector))
         }
     };
 
@@ -145,8 +144,8 @@ fn zipkin_process(
 
 /// Container for the configured zipkin collector.
 enum ZipkinCollector {
-    Http(HttpCollector),
-    Kafka(KafkaCollector),
+    Http(Box<HttpCollector>),
+    Kafka(Box<KafkaCollector>),
 }
 
 #[cfg(test)]
