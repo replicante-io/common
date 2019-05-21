@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 ### Added
 - Advanced `Router`.
+- Helper to convert opentracing error into an Iron error.
 - Sentry error response middlewere.
 
 ## 0.1.3 - 2019-03-29

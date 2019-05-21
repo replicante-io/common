@@ -1,5 +1,8 @@
 extern crate failure;
 extern crate iron;
+extern crate iron_json_response;
+#[cfg(test)]
+extern crate iron_test;
 extern crate opentracingrust;
 extern crate prometheus;
 extern crate router as iron_router;
@@ -8,9 +11,6 @@ extern crate serde_json;
 extern crate slog;
 
 extern crate replicante_util_failure;
-
-#[cfg(test)]
-extern crate iron_test;
 
 use iron::Request;
 use iron::Response;
@@ -23,6 +23,7 @@ mod sentry;
 mod tracing;
 
 pub use self::error::into_ironerror;
+pub use self::error::otr_into_ironerror;
 pub use self::logging::middleware::RequestLogger;
 pub use self::metrics::expose::MetricsHandler;
 pub use self::metrics::observe::MetricsMiddleware;

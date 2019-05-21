@@ -3,6 +3,20 @@ use std::fmt;
 use failure::Backtrace;
 use failure::Context;
 use failure::Fail;
+use opentracingrust::Log;
+use opentracingrust::Span;
+
+/// Re-implement `FailSpan` for `Fail` errors :-(
+pub fn fail_span<F: Fail>(error: F, span: &mut Span) -> F {
+    span.tag("error", true);
+    span.log(
+        Log::new()
+            .log("event", "error")
+            .log("message", error.to_string())
+            .log("error.object", format!("{:?}", error)),
+    );
+    error
+}
 
 /// Error information returned by functions in case of errors.
 #[derive(Debug)]

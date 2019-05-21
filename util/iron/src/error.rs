@@ -1,10 +1,14 @@
 use std::fmt;
 
+use failure::err_msg;
 use failure::Fail;
 use iron::headers::ContentType;
 use iron::status;
 use iron::IronError;
 use iron::Response;
+use iron::Set;
+use iron_json_response::JsonResponse;
+use opentracingrust::Error as OTError;
 use serde_json;
 
 use replicante_util_failure::SerializableFail;
@@ -22,6 +26,27 @@ pub fn into_ironerror<E: Fail>(error: E) -> IronError {
     response.headers.set(ContentType::json());
     let error = Box::new(ErrorWrapper { display });
     IronError { error, response }
+}
+
+/// Convert an OpenTracingRust error into an IronError.
+#[allow(clippy::needless_pass_by_value)]
+pub fn otr_into_ironerror(error: OTError) -> IronError {
+    let error = format!("{:?}", error);
+    let wrapper = SerializableFail {
+        error: error.clone(),
+        layers: vec![error.clone()],
+        trace: None,
+    };
+    let mut response = Response::new();
+    response
+        .set_mut(JsonResponse::json(wrapper))
+        .set_mut(status::BadRequest);
+    // OTError should really have implemented `Error` :-(
+    let error = err_msg(error).compat();
+    IronError {
+        error: Box::new(error),
+        response,
+    }
 }
 
 /// Internal compatibility type between a `Fail` and an `iron::Error`.
