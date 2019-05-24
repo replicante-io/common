@@ -1,5 +1,6 @@
 extern crate failure;
 extern crate humthreads;
+extern crate iron;
 extern crate opentracingrust;
 extern crate opentracingrust_zipkin;
 extern crate reqwest;
@@ -20,6 +21,7 @@ use slog::Logger;
 use replicante_util_upkeep::Upkeep;
 
 mod backends;
+pub mod carriers;
 mod config;
 mod error;
 

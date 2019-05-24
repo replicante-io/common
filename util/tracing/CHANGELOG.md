@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 ### Added
+- Iron and reqwest headers carries.
 - Helper to fail spans on error.
 - Zipkin HTTP transport support.
 
