@@ -6,6 +6,8 @@ use failure::Fail;
 use opentracingrust::Log;
 use opentracingrust::Span;
 
+use replicante_util_failure::format_fail;
+
 /// Re-implement `FailSpan` for `Fail` errors :-(
 pub fn fail_span<F: Fail>(error: F, span: &mut Span) -> F {
     span.tag("error", true);
@@ -13,7 +15,7 @@ pub fn fail_span<F: Fail>(error: F, span: &mut Span) -> F {
         Log::new()
             .log("event", "error")
             .log("message", error.to_string())
-            .log("error.object", format!("{:?}", error)),
+            .log("error.object", format_fail(&error)),
     );
     error
 }

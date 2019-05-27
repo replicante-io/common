@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Helper to fail spans on error.
 - Zipkin HTTP transport support.
 
+### Fixed
+- Error encoding in `fail_span` no longer breaks HTTP reporter.
+
 ### Changed
 - **BREAKING**: Remove service name from configuration (code should set it).
 - **BREAKING**: Replace `ReporterThread` with `humthreads` and `Upkeep`.
