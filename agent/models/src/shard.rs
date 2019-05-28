@@ -1,3 +1,6 @@
+use serde_derive::Deserialize;
+use serde_derive::Serialize;
+
 /// Information about the current commit offset of a shard or replication lag.
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub struct CommitOffset {

@@ -1,3 +1,4 @@
+use slog::o;
 use slog::Logger;
 use slog::Never;
 use slog::SendSyncRefUnwindSafeDrain;

@@ -1,5 +1,8 @@
 use std::collections::BTreeMap;
 
+use serde_derive::Deserialize;
+use serde_derive::Serialize;
+
 /// Logging configuration options.
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]

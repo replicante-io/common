@@ -102,6 +102,8 @@ where
 mod tests {
     use std::collections::HashMap;
 
+    use slog::b;
+    use slog::record;
     use slog::Discard;
     use slog::Level;
 

@@ -1,8 +1,5 @@
 extern crate serde;
-#[macro_use]
 extern crate serde_derive;
-
-#[macro_use]
 extern crate slog;
 extern crate slog_async;
 #[cfg(feature = "journald")]
@@ -12,13 +9,12 @@ extern crate slog_json;
 use std::io::stdout;
 use std::sync::Mutex;
 
+use slog::o;
 use slog::Drain;
+use slog::FnValue;
 use slog::IgnoreResult;
 use slog::Logger;
-
-use slog::FnValue;
 use slog::Record;
-
 #[cfg(feature = "journald")]
 use slog_journald::JournaldDrain;
 use slog_json::Json;

@@ -1,7 +1,6 @@
 extern crate data_encoding;
 extern crate rand;
 extern crate serde;
-#[macro_use]
 extern crate serde_derive;
 
 use std::fmt;
@@ -11,6 +10,8 @@ use data_encoding::DecodeError;
 use data_encoding::DecodeKind;
 use data_encoding::HEXLOWER_PERMISSIVE;
 use rand::Rng;
+use serde_derive::Deserialize;
+use serde_derive::Serialize;
 
 /// Randomly generated (probably) unique IDs.
 ///

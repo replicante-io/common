@@ -1,7 +1,6 @@
 extern crate failure;
 extern crate sentry;
 extern crate serde;
-#[macro_use]
 extern crate serde_derive;
 extern crate slog;
 

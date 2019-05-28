@@ -38,6 +38,10 @@ impl Fail for Error {
     fn backtrace(&self) -> Option<&Backtrace> {
         self.0.backtrace()
     }
+
+    fn name(&self) -> Option<&str> {
+        self.kind().kind_name()
+    }
 }
 
 impl fmt::Display for Error {
@@ -66,6 +70,16 @@ pub enum ErrorKind {
 
     #[fail(display = "unable to spawn {} thread", _0)]
     ThreadSpawn(&'static str),
+}
+
+impl ErrorKind {
+    fn kind_name(&self) -> Option<&str> {
+        let name = match self {
+            ErrorKind::Config(_) => "Config",
+            ErrorKind::ThreadSpawn(_) => "ThreadSpawn",
+        };
+        Some(name)
+    }
 }
 
 /// Short form alias for functions returning `Error`s.

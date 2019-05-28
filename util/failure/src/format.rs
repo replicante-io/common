@@ -1,4 +1,6 @@
 use failure::Fail;
+use serde_derive::Deserialize;
+use serde_derive::Serialize;
 
 /// Format the given `Fail` for display to the user.
 pub fn format_fail(fail: &dyn Fail) -> String {

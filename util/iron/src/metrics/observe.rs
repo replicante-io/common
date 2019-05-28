@@ -4,14 +4,13 @@ use iron::prelude::*;
 use iron::typemap::Key;
 use iron::AfterMiddleware;
 use iron::BeforeMiddleware;
-
 use prometheus::core::Collector;
 use prometheus::CounterVec;
 use prometheus::HistogramOpts;
 use prometheus::HistogramTimer;
 use prometheus::HistogramVec;
 use prometheus::Opts;
-
+use slog::error;
 use slog::Logger;
 
 use super::super::request_method;
@@ -316,6 +315,7 @@ impl AfterMiddleware for MetricsAfter {
 
 #[cfg(test)]
 mod tests {
+    use slog::o;
     use slog::Discard;
     use slog::Logger;
 

@@ -7,7 +7,6 @@ extern crate opentracingrust;
 extern crate prometheus;
 extern crate router as iron_router;
 extern crate serde_json;
-#[macro_use]
 extern crate slog;
 
 extern crate replicante_util_failure;

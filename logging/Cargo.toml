@@ -13,10 +13,6 @@ keywords = ["replicante"]
 license = "MIT"
 
 
-[badges]
-maintenance = { status = "actively-developed" }
-
-
 [dependencies]
 serde = "^1.0.34"
 serde_derive = "^1.0.34"

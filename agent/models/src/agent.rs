@@ -1,3 +1,6 @@
+use serde_derive::Deserialize;
+use serde_derive::Serialize;
+
 /// Agent-specific information.
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub struct AgentInfo {

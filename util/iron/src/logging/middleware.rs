@@ -4,6 +4,7 @@ use iron::IronResult;
 use iron::Request;
 use iron::Response;
 
+use slog::info;
 use slog::Logger;
 
 use super::super::request_method;
@@ -61,6 +62,7 @@ mod tests {
     use iron::status;
     use iron_test::request;
 
+    use slog::o;
     use slog::Drain;
     use slog::Logger;
     use slog::Never;

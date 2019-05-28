@@ -3,7 +3,6 @@ extern crate humthreads;
 #[cfg(test)]
 extern crate nix;
 extern crate signal_hook;
-#[macro_use]
 extern crate slog;
 
 extern crate replicante_util_failure;
@@ -20,6 +19,9 @@ use humthreads::ErrorKind as HumthreadsErrorKind;
 use humthreads::MapThread;
 use humthreads::Thread;
 use signal_hook::SigId;
+use slog::debug;
+use slog::o;
+use slog::warn;
 use slog::Discard;
 use slog::Logger;
 
