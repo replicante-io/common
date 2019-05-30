@@ -10,6 +10,7 @@ extern crate serde_json;
 extern crate slog;
 
 extern crate replicante_util_failure;
+extern crate replicante_util_tracing;
 
 use iron::Request;
 use iron::Response;
@@ -19,18 +20,17 @@ mod logging;
 mod metrics;
 mod router;
 mod sentry;
-mod tracing;
 
 pub use self::error::into_ironerror;
 pub use self::error::otr_into_ironerror;
 pub use self::logging::middleware::RequestLogger;
 pub use self::metrics::expose::MetricsHandler;
 pub use self::metrics::observe::MetricsMiddleware;
+pub use self::router::request_span;
 pub use self::router::RootDescriptor;
 pub use self::router::RootedRouter;
 pub use self::router::Router;
 pub use self::sentry::SentryMiddleware;
-pub use self::tracing::carrier::HeadersCarrier;
 
 /// Extracts the request method as a string.
 fn request_method(request: &Request) -> String {

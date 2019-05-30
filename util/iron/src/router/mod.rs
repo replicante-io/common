@@ -1,8 +1,16 @@
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use iron::method;
 use iron::Chain;
 use iron::Handler;
+use opentracingrust::Tracer;
+use slog::Logger;
+
+mod tracing;
+
+pub use self::tracing::request_span;
+use self::tracing::TracedHandler;
 
 /// A builder object for an `iron-router` [`Router`].
 ///
@@ -10,15 +18,26 @@ use iron::Handler;
 pub struct Router {
     flags: HashMap<&'static str, bool>,
     inner: ::iron_router::Router,
+    logger: Logger,
+    tracer: Option<Arc<Tracer>>,
 }
 
 impl Router {
     /// Wraps a new [`Router`] for manipulation.
     ///
     /// [`Router`]: router/struct.Router.html
-    pub fn new(flags: HashMap<&'static str, bool>) -> Router {
+    pub fn new<T>(flags: HashMap<&'static str, bool>, logger: Logger, tracer: T) -> Router
+    where
+        T: Into<Option<Arc<Tracer>>>,
+    {
         let inner = ::iron_router::Router::new();
-        Router { flags, inner }
+        let tracer = tracer.into();
+        Router {
+            flags,
+            inner,
+            logger,
+            tracer,
+        }
     }
 
     /// Convert this `Router` into an iron [`Chain`].
@@ -31,12 +50,16 @@ impl Router {
     /// Returns a "veiw" on the router to register endpoints under a specific root.
     pub fn for_root<R: RootDescriptor>(&mut self, root: &R) -> RootedRouter {
         let enabled = root.enabled(&self.flags);
+        let logger = &self.logger;
         let prefix = root.prefix();
         let router = &mut self.inner;
+        let tracer = self.tracer.clone();
         RootedRouter {
             enabled,
+            logger,
             prefix,
             router,
+            tracer,
         }
     }
 }
@@ -100,8 +123,10 @@ pub trait RootDescriptor {
 /// registered with as well as the the Iron `::router::Router` id.
 pub struct RootedRouter<'a> {
     enabled: bool,
+    logger: &'a Logger,
     prefix: &'static str,
     router: &'a mut ::iron_router::Router,
+    tracer: Option<Arc<Tracer>>,
 }
 
 impl<'a> RootedRouter<'a> {
@@ -140,7 +165,14 @@ impl<'a> RootedRouter<'a> {
         }
         let glob = self.prefix.to_string() + glob.as_ref();
         let route_id = self.prefix.to_string() + route_id.as_ref();
-        self.router.route(method, glob, handler, route_id);
+        match self.tracer.clone() {
+            None => self.router.route(method, glob, handler, route_id),
+            Some(tracer) => {
+                let handler =
+                    TracedHandler::new(tracer, glob.clone(), self.logger.clone(), handler);
+                self.router.route(method, glob, handler, route_id)
+            }
+        };
         self
     }
 }
@@ -157,6 +189,9 @@ mod tests {
     use iron::Response;
     use iron_test::request;
     use iron_test::response;
+    use slog::o;
+    use slog::Discard;
+    use slog::Logger;
 
     use super::RootDescriptor;
     use super::Router;
@@ -211,7 +246,8 @@ mod tests {
 
     #[test]
     fn attach_get() {
-        let mut router = Router::new(HashMap::new());
+        let logger = Logger::root(Discard, o!());
+        let mut router = Router::new(HashMap::new(), logger, None);
         {
             let mut root = router.for_root(&Roots::R1);
             root.get("", &mock_get, "");
@@ -236,7 +272,8 @@ mod tests {
 
     #[test]
     fn attach_post() {
-        let mut router = Router::new(HashMap::new());
+        let logger = Logger::root(Discard, o!());
+        let mut router = Router::new(HashMap::new(), logger, None);
         {
             let mut root = router.for_root(&Roots::R2);
             root.post("", &mock_post, "");
@@ -251,7 +288,8 @@ mod tests {
 
     #[test]
     fn attach_route() {
-        let mut router = Router::new(HashMap::new());
+        let logger = Logger::root(Discard, o!());
+        let mut router = Router::new(HashMap::new(), logger, None);
         {
             let mut root = router.for_root(&Roots::R3);
             root.route(method::Put, "", &mock_put, "");
@@ -269,7 +307,8 @@ mod tests {
         let mut flags = HashMap::new();
         flags.insert("r1", false);
         flags.insert("r2", true);
-        let mut router = Router::new(flags);
+        let logger = Logger::root(Discard, o!());
+        let mut router = Router::new(flags, logger, None);
         {
             let mut root = router.for_root(&Roots::R1);
             root.get("/test", &mock_get, "/test");
@@ -301,7 +340,8 @@ mod tests {
     fn filtered_routes_by_group() {
         let mut flags = HashMap::new();
         flags.insert("test", false);
-        let mut router = Router::new(flags);
+        let logger = Logger::root(Discard, o!());
+        let mut router = Router::new(flags, logger, None);
         {
             let mut root = router.for_root(&Roots::R1);
             root.get("/test", &mock_get, "/test");

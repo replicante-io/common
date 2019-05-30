@@ -25,6 +25,7 @@ serde_json = "^1.0.13"
 slog = "^2.2.0"
 
 replicante_util_failure = { version = "^0.1.0", path = "../failure" }
+replicante_util_tracing = { version = "^0.2.1", path = "../tracing" }
 
 
 [dev-dependencies]

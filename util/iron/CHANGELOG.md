@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Advanced `Router`.
 - Helper to convert opentracing error into an Iron error.
 - Sentry error response middlewere.
+- `Router` support for OpenTracing span creation and propagation.
+
+### Removed
+- **BREAKING**: Headers tracing moved to `replicante_util_tracing::carriers::iron`.
 
 ## 0.1.3 - 2019-03-29
 ### Added
