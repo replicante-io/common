@@ -53,7 +53,11 @@ impl Router {
         let logger = &self.logger;
         let prefix = root.prefix();
         let router = &mut self.inner;
-        let tracer = self.tracer.clone();
+        let tracer = if root.trace() {
+            self.tracer.clone()
+        } else {
+            None
+        };
         RootedRouter {
             enabled,
             logger,
@@ -115,6 +119,14 @@ pub trait RootDescriptor {
 
     /// Return the URI prefix for a root.
     fn prefix(&self) -> &'static str;
+
+    /// Trace requests to a root, if tracing is enabled.
+    ///
+    /// Tracing of roots is on by default but can be turned off for low-value and
+    /// high-rate roots (like introspection or debugging) by returning `false`.
+    fn trace(&self) -> bool {
+        true
+    }
 }
 
 /// Specialised router to mount endpoints under a fixed root.
