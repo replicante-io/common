@@ -26,6 +26,8 @@ pub use self::error::otr_into_ironerror;
 pub use self::logging::middleware::RequestLogger;
 pub use self::metrics::expose::MetricsHandler;
 pub use self::metrics::observe::MetricsMiddleware;
+#[cfg(feature = "with_test_support")]
+pub use self::router::mock_request_span;
 pub use self::router::request_span;
 pub use self::router::RootDescriptor;
 pub use self::router::RootedRouter;

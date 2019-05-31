@@ -13,6 +13,10 @@ keywords = ["replicante", "utility", "iron"]
 license = "MIT"
 
 
+[features]
+with_test_support = []
+
+
 [dependencies]
 failure = "^0.1.5"
 iron = "^0.6.0"

@@ -9,6 +9,8 @@ use slog::Logger;
 
 mod tracing;
 
+#[cfg(feature = "with_test_support")]
+pub use self::tracing::mock_request_span;
 pub use self::tracing::request_span;
 use self::tracing::TracedHandler;
 
