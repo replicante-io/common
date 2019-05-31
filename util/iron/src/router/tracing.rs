@@ -24,7 +24,7 @@ pub fn mock_request_span<H: Handler>(tracer: Arc<Tracer>, handler: H) -> impl Ha
         let span = tracer.span("mock_request_span");
         request.extensions.insert::<IronSpan>(span);
         let response = handler.handle(request);
-        if let Some(span) = req.extensions.remove::<IronSpan>() {
+        if let Some(span) = request.extensions.remove::<IronSpan>() {
             let _ = span.finish();
         }
         response
