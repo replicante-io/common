@@ -20,7 +20,7 @@ use replicante_util_tracing::carriers::iron::HeadersCarrier;
 /// and extracted with `request_span`.
 #[cfg(feature = "with_test_support")]
 pub fn mock_request_span<H: Handler>(tracer: Arc<Tracer>, handler: H) -> impl Handler {
-    |request| {
+    move |request: &mut Request| -> IronResult<Response> {
         let span = tracer.span("mock_request_span");
         request.extensions.insert::<IronSpan>(span);
         let response = handler.handle(request);
