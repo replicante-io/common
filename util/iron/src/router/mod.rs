@@ -144,7 +144,17 @@ pub struct RootedRouter<'a> {
 }
 
 impl<'a> RootedRouter<'a> {
-    /// Like route, but specialized to the `Get` method.
+    /// Like route, but specialized to the `DELETE` method.
+    pub fn delete<S: AsRef<str>, H: Handler, I: AsRef<str>>(
+        &mut self,
+        glob: S,
+        handler: H,
+        route_id: I,
+    ) -> &mut RootedRouter<'a> {
+        self.route(method::Delete, glob, handler, route_id)
+    }
+
+    /// Like route, but specialized to the `GET` method.
     pub fn get<S: AsRef<str>, H: Handler, I: AsRef<str>>(
         &mut self,
         glob: S,
@@ -154,7 +164,7 @@ impl<'a> RootedRouter<'a> {
         self.route(method::Get, glob, handler, route_id)
     }
 
-    /// Like route, but specialized to the `Post` method.
+    /// Like route, but specialized to the `POST` method.
     pub fn post<S: AsRef<str>, H: Handler, I: AsRef<str>>(
         &mut self,
         glob: S,
@@ -162,6 +172,16 @@ impl<'a> RootedRouter<'a> {
         route_id: I,
     ) -> &mut RootedRouter<'a> {
         self.route(method::Post, glob, handler, route_id)
+    }
+
+    /// Like route, but specialized to the `PUT` method.
+    pub fn put<S: AsRef<str>, H: Handler, I: AsRef<str>>(
+        &mut self,
+        glob: S,
+        handler: H,
+        route_id: I,
+    ) -> &mut RootedRouter<'a> {
+        self.route(method::Put, glob, handler, route_id)
     }
 
     /// Wrapper for [`Router::route`] with additional features.
