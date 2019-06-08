@@ -38,7 +38,7 @@ pub struct FailureInfo {
 }
 
 impl KV for FailureInfo {
-    fn serialize(&self, _record: &Record, serializer: &mut Serializer) -> ::slog::Result {
+    fn serialize(&self, _record: &Record, serializer: &mut dyn Serializer) -> ::slog::Result {
         if let Some(cause) = self.cause.as_ref() {
             serializer.emit_str("error_cause", cause)?;
         }

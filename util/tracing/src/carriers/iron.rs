@@ -151,7 +151,7 @@ mod tests {
             .headers
             .set_raw("X-Test-2", vec![String::from("Test 2").into_bytes()]);
         let carrier = HeadersCarrier::new(&mut response.headers);
-        let boxed: Box<MapCarrier> = Box::new(carrier);
+        let boxed: Box<dyn MapCarrier> = Box::new(carrier);
         assert_eq!("Test 1", boxed.get("X-Test-1").unwrap());
         assert_eq!("Test 2", boxed.get("X-Test-2").unwrap());
         assert!(boxed.get("X-Test-3").is_none());
@@ -167,7 +167,7 @@ mod tests {
             .headers
             .set_raw("X-Test-2", vec![String::from("Test 2").into_bytes()]);
         let carrier = HeadersCarrier::new(&mut response.headers);
-        let boxed: Box<MapCarrier> = Box::new(carrier);
+        let boxed: Box<dyn MapCarrier> = Box::new(carrier);
         let items: Vec<(&String, &String)> = boxed.items();
         assert_eq!(2, items.len());
     }
@@ -177,7 +177,7 @@ mod tests {
         let mut response = Response::new();
         {
             let carrier = HeadersCarrier::new(&mut response.headers);
-            let mut boxed: Box<MapCarrier> = Box::new(carrier);
+            let mut boxed: Box<dyn MapCarrier> = Box::new(carrier);
             boxed.set("X-Some-Header", "Some header value");
         }
         let value = response.headers.get_raw("X-Some-Header").unwrap();

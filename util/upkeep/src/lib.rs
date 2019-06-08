@@ -60,7 +60,7 @@ use replicante_util_failure::failure_info;
 ///# }
 /// ```
 pub struct Upkeep {
-    callbacks: Vec<Box<Fn() -> ()>>,
+    callbacks: Vec<Box<dyn Fn() -> ()>>,
     logger: Logger,
     registered_signals: Vec<SigId>,
     signal_flag: Arc<AtomicBool>,
