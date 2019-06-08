@@ -1,7 +1,8 @@
 [workspace]
 members = [
-  "agent/models",
   "logging",
+  "models/agent",
+  "models/api",
   "util/failure",
   "util/iron",
   "util/rndid",

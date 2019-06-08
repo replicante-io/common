@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add `cluster_display_name` attribute to datastore info.
 
 ### Changed
+- **BREAKING**: Rename crate to `replicante_models_agent`.
 - **BREAKING**: Replace datastore info attribute `cluster` with `cluster_id`.
 - **BREAKING**: Replace datastore info attribute `name` with `node_id`.
 

@@ -5,7 +5,6 @@ use serde_derive::Serialize;
 
 /// Logging configuration options.
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 pub struct Config {
     /// Flush logs asynchronously.
     #[serde(rename = "async", default = "Config::default_async_flush")]
@@ -62,7 +61,7 @@ impl Config {
 
 /// List of supported logging backends.
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
-#[serde(tag = "name", content = "options", deny_unknown_fields)]
+#[serde(tag = "name", content = "options")]
 pub enum LoggingBackend {
     /// Log objects to systemd journal (journald).
     #[cfg(feature = "journald")]
@@ -82,7 +81,6 @@ impl Default for LoggingBackend {
 
 /// Possible logging levels.
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 pub enum LoggingLevel {
     #[serde(rename = "debug")]
     Debug = 1,

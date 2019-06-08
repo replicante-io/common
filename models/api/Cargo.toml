@@ -1,0 +1,18 @@
+[package]
+name = "replicante_models_api"
+version = "0.1.0"
+authors = ["Stefano Pogliani <stefano@spogliani.net>"]
+edition = "2018"
+
+description = "Replicante Core API request/response models"
+documentation = "https://www.replicante.io/docs"
+homepage = "https://www.replicante.io/"
+repository = "https://github.com/replicante-io/common"
+readme = "../../README.md"
+keywords = ["replicante"]
+license = "MIT"
+
+
+[dependencies]
+serde = "^1.0.34"
+serde_derive = "^1.0.34"
