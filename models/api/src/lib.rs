@@ -9,7 +9,7 @@ use serde_derive::Serialize;
 #[serde(tag = "status", content = "details")]
 pub enum HealthStatus {
     #[serde(rename = "HEALTHY")]
-    Helathy,
+    Healthy,
 
     #[serde(rename = "DEGRADED")]
     Degraded(String),
