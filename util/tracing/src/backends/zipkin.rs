@@ -4,7 +4,6 @@ use std::time::Duration;
 use failure::ResultExt;
 use humthreads::Builder;
 use humthreads::ThreadScope;
-use opentracingrust::tracers::NoopTracer;
 use opentracingrust::FinishedSpan;
 use opentracingrust::Tracer;
 use opentracingrust_zipkin::HttpCollector;
@@ -17,16 +16,10 @@ use slog::Logger;
 use replicante_util_failure::capture_fail;
 use replicante_util_failure::failure_info;
 
-use super::config::ZipkinConfig;
-use super::ErrorKind;
-use super::Opts;
-use super::Result;
-
-/// Creates a noop tracer that discards all spans.
-pub fn noop() -> Result<Tracer> {
-    let (tracer, _receiver) = NoopTracer::new();
-    Ok(tracer)
-}
+use crate::config::ZipkinConfig;
+use crate::ErrorKind;
+use crate::Opts;
+use crate::Result;
 
 /// Creates a zipkin tracer that sends spans over kafka.
 pub fn zipkin(config: ZipkinConfig, opts: Opts) -> Result<Tracer> {
@@ -146,16 +139,4 @@ fn zipkin_process(
 enum ZipkinCollector {
     Http(Box<HttpCollector>),
     Kafka(Box<KafkaCollector>),
-}
-
-#[cfg(test)]
-mod tests {
-    mod noop {
-        use super::super::noop;
-
-        #[test]
-        fn factory() {
-            let _tracer = noop().expect("Failed to configure NoopTracer");
-        }
-    }
 }

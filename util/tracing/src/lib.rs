@@ -65,7 +65,7 @@ impl<'a> Opts<'a> {
 /// Creates a new tracer based on the given configuration.
 pub fn tracer(config: Config, opts: Opts) -> Result<Tracer> {
     match config {
-        Config::Noop => self::backends::noop(),
+        Config::Noop => self::backends::noop(opts),
         Config::Zipkin(config) => self::backends::zipkin(config, opts),
     }
 }
