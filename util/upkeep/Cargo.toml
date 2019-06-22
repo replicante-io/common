@@ -23,4 +23,4 @@ replicante_util_failure = { version = "^0.1.0", path = "../failure" }
 
 
 [dev-dependencies]
-nix = "^0.13.0"
+nix = "^0.14.0"
