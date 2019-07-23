@@ -3,6 +3,7 @@ members = [
   "logging",
   "models/agent",
   "models/api",
+  "util/actixweb",
   "util/failure",
   "util/iron",
   "util/rndid",

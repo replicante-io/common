@@ -1,0 +1,30 @@
+[package]
+name = "replicante_util_actixweb"
+version = "0.1.0"
+authors = ["Stefano Pogliani <stefano@spogliani.net>"]
+edition = "2018"
+
+description = "ActixWeb utils for Replicante"
+documentation = "https://docs.rs/replicante_util_actixweb"
+homepage = "https://www.replicante.io/"
+repository = "https://github.com/replicante-io/common"
+readme = "../../README.md"
+license = "MIT"
+
+
+[dependencies]
+actix-http = "^0.2.7"
+actix-service = "^0.4.1"
+actix-web = "^1.0.0"
+failure = "^0.1.5"
+futures = "^0.1.25"
+opentracingrust = "^0.3.1"
+prometheus = "^0.7.0"
+sentry = "^0.15.4"
+slog = "^2.2.0"
+
+replicante_util_failure = { version = "^0.1.1", path = "../failure" }
+
+
+[dev-dependencies]
+sentry = { version = "^0.15.4", features = ["with_test_support"] }

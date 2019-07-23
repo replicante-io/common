@@ -18,7 +18,7 @@ use replicante_util_failure::SerializableFail;
 /// The iron `Response` attached to this error returns a JSON serialised `SerializableFail`.
 pub fn into_ironerror<E: Fail>(error: E) -> IronError {
     let display = error.to_string();
-    let wrapper = SerializableFail::from(error);
+    let wrapper = SerializableFail::from(&error);
     let mut response = Response::with((
         status::InternalServerError,
         serde_json::to_string(&wrapper).unwrap(),

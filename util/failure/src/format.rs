@@ -28,9 +28,9 @@ pub struct SerializableFail {
     pub trace: Option<String>,
 }
 
-impl<E: Fail> From<E> for SerializableFail {
-    fn from(error: E) -> SerializableFail {
-        let layers = Fail::iter_chain(&error).map(ToString::to_string).collect();
+impl<E: Fail> From<&E> for SerializableFail {
+    fn from(error: &E) -> SerializableFail {
+        let layers = Fail::iter_chain(error).map(ToString::to_string).collect();
         let trace = match error.backtrace().map(ToString::to_string) {
             None => None,
             Some(ref bt) if bt == "" => None,
@@ -78,7 +78,7 @@ mod test {
     #[test]
     fn serializable_fail() {
         let error = err_msg("test").context("chained").context("failures");
-        let error: SerializableFail = error.into();
+        let error = SerializableFail::from(&error);
         assert_eq!(error.error, "failures");
         assert_eq!(
             error.layers,

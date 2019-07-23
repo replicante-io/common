@@ -11,35 +11,6 @@ use opentracingrust::SpanContext;
 use opentracingrust::Tracer;
 
 /// Implement the MapCarrier trait for Iron's Headers.
-///
-/// # Examples
-///
-/// Inject a span context:
-///
-/// ```ignore
-/// use replicante_util_tracing::carriers::iron::HeadersCarrier;
-///
-/// let mut response = Response::new();
-/// HeadersCarrier::inject(span.context(), &mut response.headers, &tracer);
-/// ```
-///
-/// Optionally extract a context:
-///
-/// ```ignore
-/// use replicante_util_tracing::carriers::iron::HeadersCarrier;
-///
-/// let mut response = Response::new();
-/// HeadersCarrier::extract(span.context(), &response.headers, &tracer);
-/// ```
-///
-/// Create a new span, making it a child if the headers have a context:
-///
-/// ```ignore
-/// use replicante_util_tracing::carriers::iron::HeadersCarrier;
-///
-/// let mut response = Response::new();
-/// HeadersCarrier::child_of("span", &response.headers, &tracer);
-/// ```
 pub struct HeadersCarrier<'a> {
     headers: &'a mut Headers,
     // This is horrible, I am sorry.
