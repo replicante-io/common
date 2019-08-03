@@ -13,6 +13,7 @@ extern crate slog;
 extern crate replicante_util_failure;
 extern crate replicante_util_upkeep;
 
+use std::sync::Arc;
 use std::time::Duration;
 
 use opentracingrust::Tracer;
@@ -30,6 +31,29 @@ pub use self::error::fail_span;
 pub use self::error::Error;
 pub use self::error::ErrorKind;
 pub use self::error::Result;
+
+/// Wrapper for easier optional `Tracer`s.
+#[derive(Clone)]
+pub struct MaybeTracer(Option<Arc<Tracer>>);
+
+impl MaybeTracer {
+    pub fn new<T>(tracer: T) -> MaybeTracer
+    where
+        T: Into<Option<Arc<Tracer>>>,
+    {
+        MaybeTracer(tracer.into())
+    }
+
+    pub fn with<B, T>(&self, block: B) -> Option<T>
+    where
+        B: FnOnce(&Tracer) -> T,
+    {
+        match self.0.as_ref() {
+            None => None,
+            Some(tracer) => Some(block(tracer)),
+        }
+    }
+}
 
 /// Additional options passed to tracer configuration.
 pub struct Opts<'a> {
