@@ -44,6 +44,7 @@ impl MaybeTracer {
         MaybeTracer(tracer.into())
     }
 
+    /// Execute the block if a `Tracer` is available.
     pub fn with<B, T>(&self, block: B) -> Option<T>
     where
         B: FnOnce(&Tracer) -> T,
