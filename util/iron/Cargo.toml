@@ -24,7 +24,7 @@ iron-json-response = "^0.6.0"
 opentracingrust = "^0.3.1"
 prometheus = "^0.7.0"
 router = "^0.6.0"
-sentry = "^0.16.0"
+sentry = "^0.17.0"
 serde_json = "^1.0.13"
 slog = "^2.2.0"
 
@@ -34,4 +34,4 @@ replicante_util_tracing = { version = "^0.3.0", path = "../tracing" }
 
 [dev-dependencies]
 iron-test = "^0.6.0"
-sentry = { version = "^0.16.0", features = ["with_test_support"] }
+sentry = { version = "^0.17.0", features = ["with_test_support"] }
