@@ -35,9 +35,9 @@ impl ActionState {
     /// True if the action is finished (failed or succeeded).
     pub fn is_finished(&self) -> bool {
         match self {
-            Self::Cancelled => true,
-            Self::Done => true,
-            Self::Failed => true,
+            ActionState::Cancelled => true,
+            ActionState::Done => true,
+            ActionState::Failed => true,
             _ => false,
         }
     }
