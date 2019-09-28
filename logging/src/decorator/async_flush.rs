@@ -15,8 +15,9 @@ use super::Opts;
 #[allow(clippy::needless_pass_by_value)]
 pub fn async_flush<D>(config: Config, opts: &Opts, drain: D) -> Logger
 where
-    D: SendSyncUnwindSafeDrain<Ok = (), Err = Never>,
-    D: 'static + SendSyncRefUnwindSafeDrain<Ok = (), Err = Never>,
+    D: 'static
+        + SendSyncUnwindSafeDrain<Ok = (), Err = Never>
+        + SendSyncRefUnwindSafeDrain<Ok = (), Err = Never>,
 {
     if config.async_flush {
         into_logger(opts, Async::new(drain).build().ignore_res())

@@ -83,8 +83,9 @@ impl From<(String, Level)> for PrefixLevel {
 /// Configures the desired logging level.
 pub fn level<D>(config: &Config, drain: D) -> LevelFilter<D>
 where
-    D: SendSyncUnwindSafeDrain<Ok = (), Err = Never>,
-    D: 'static + SendSyncRefUnwindSafeDrain<Ok = (), Err = Never>,
+    D: 'static
+        + SendSyncUnwindSafeDrain<Ok = (), Err = Never>
+        + SendSyncRefUnwindSafeDrain<Ok = (), Err = Never>,
 {
     let mut filter = LevelFilter::new(drain, config.level.clone().into());
     filter.modules(
