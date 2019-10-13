@@ -53,11 +53,9 @@ use replicante_util_failure::failure_info;
 ///
 /// # Example
 /// ```norun
-///# fn main() {
-///   let mut up = Upkeep::new();
-///   up.on_shutdown(|| println!("Bye :wave:"));
-///   up.wait();
-///# }
+/// let mut up = Upkeep::new();
+/// up.on_shutdown(|| println!("Bye :wave:"));
+/// up.wait();
 /// ```
 pub struct Upkeep {
     callbacks: Vec<Box<dyn Fn() -> ()>>,
