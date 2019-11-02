@@ -14,6 +14,10 @@ pub struct Config {
     #[serde(default)]
     pub backend: LoggingBackend,
 
+    /// Include the version in every log record.
+    #[serde(default = "Config::default_include_version")]
+    pub include_version: bool,
+
     /// The minimum logging level.
     #[serde(default)]
     pub level: LoggingLevel,
@@ -43,9 +47,10 @@ impl Default for Config {
         Config {
             async_flush: Config::default_async_flush(),
             backend: LoggingBackend::default(),
+            include_version: Config::default_include_version(),
             level: LoggingLevel::default(),
             modules: BTreeMap::new(),
-            verbose: false,
+            verbose: Config::default_verbose(),
         }
     }
 }
@@ -53,6 +58,9 @@ impl Default for Config {
 impl Config {
     fn default_async_flush() -> bool {
         true
+    }
+    fn default_include_version() -> bool {
+        false
     }
     fn default_verbose() -> bool {
         false

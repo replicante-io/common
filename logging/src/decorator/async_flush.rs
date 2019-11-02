@@ -20,8 +20,12 @@ where
         + SendSyncRefUnwindSafeDrain<Ok = (), Err = Never>,
 {
     if config.async_flush {
-        into_logger(opts, Async::new(drain).build().ignore_res())
+        into_logger(
+            opts,
+            Async::new(drain).build().ignore_res(),
+            config.include_version,
+        )
     } else {
-        into_logger(opts, drain)
+        into_logger(opts, drain, config.include_version)
     }
 }

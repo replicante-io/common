@@ -73,5 +73,5 @@ pub fn starter(opts: &Opts) -> Logger {
         .add_key_value(o!("module" => FnValue(|rinfo : &Record| rinfo.module())))
         .build();
     let drain = Mutex::new(drain).map(IgnoreResult::new);
-    decorator::into_logger(opts, drain)
+    decorator::into_logger(opts, drain, false)
 }

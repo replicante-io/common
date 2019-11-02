@@ -25,11 +25,15 @@ where
 ///
 /// [`Drain`]: slog/trait.Drain.html
 /// [`Logger`]: slog/struct.Logger.html
-pub fn into_logger<D>(opts: &Opts, drain: D) -> Logger
+pub fn into_logger<D>(opts: &Opts, drain: D, include_version: bool) -> Logger
 where
     D: 'static
         + SendSyncUnwindSafeDrain<Ok = (), Err = Never>
         + SendSyncRefUnwindSafeDrain<Ok = (), Err = Never>,
 {
-    Logger::root(drain, o!("version" => opts.version.clone()))
+    if include_version {
+        Logger::root(drain, o!("version" => opts.version.clone()))
+    } else {
+        Logger::root(drain, o!())
+    }
 }
