@@ -43,7 +43,7 @@ pub struct ActionModel {
     /// Arguments passed to the action when invoked.
     pub args: Json,
 
-    /// Time the agent recorded the action in the DB.
+    /// Time the action was first created (by the agent, by core, ...).
     pub created_ts: DateTime<Utc>,
 
     /// Time the action entered a finished state.
@@ -60,6 +60,9 @@ pub struct ActionModel {
 
     /// Entity (system or user) requesting the execution of the action.
     pub requester: ActionRequester,
+
+    /// Time the agent recorded the action in the DB.
+    pub scheduled_ts: DateTime<Utc>,
 
     /// State the action is currently in.
     pub state: ActionState,
