@@ -4,9 +4,21 @@ use serde_derive::Serialize;
 /// Entity (system, user, ...) that requested the action to be performed.
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum ActionRequester {
-    /// The action was requested over the API.
-    #[serde(rename = "API")]
-    Api,
+    /// Action requested over the Agent API.
+    #[serde(rename = "AGENT_API")]
+    AgentApi,
+
+    /// Action requested over the Replicante Core API.
+    #[serde(rename = "CORE_API")]
+    CoreApi,
+
+    /// Action requested by Replicante Core as part of a playbook.
+    #[serde(rename = "CORE_PLAYBOOK")]
+    CorePlaybook,
+
+    /// Action requested by Replicante Core while converging a declarative cluster.
+    #[serde(rename = "CORE_DECLARATIVE")]
+    CoreDeclarative,
 }
 
 /// Current state of an action execution.
