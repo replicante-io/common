@@ -36,6 +36,7 @@ pub fn otr_into_ironerror(error: OTError) -> IronError {
         error: error.clone(),
         layers: vec![error.clone()],
         trace: None,
+        variant: None,
     };
     let mut response = Response::new();
     response
@@ -104,7 +105,7 @@ mod tests {
         let result_body = String::from_utf8(result_body).unwrap();
         assert_eq!(
             result_body,
-            r#"{"error":"failures","layers":["failures","chained","test"],"trace":null}"#,
+            r#"{"error":"failures","layers":["failures","chained","test"],"trace":null,"variant":"failure::ErrorMessage"}"#,
         );
     }
 }

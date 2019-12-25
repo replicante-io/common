@@ -23,9 +23,18 @@ pub fn format_fail(fail: &dyn Fail) -> String {
 /// Serde serializable/deserializable "view" of a `Fail` error.
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub struct SerializableFail {
+    /// Error message.
     pub error: String,
+
+    /// Layers of errors that ultimately caused this error.
     pub layers: Vec<String>,
+
+    /// Optional formatted backtrace to aid debugging.
     pub trace: Option<String>,
+
+    /// Identifier of the reported error variant.
+    #[serde(default)]
+    pub variant: Option<String>,
 }
 
 impl<E: Fail> From<&E> for SerializableFail {
@@ -36,10 +45,12 @@ impl<E: Fail> From<&E> for SerializableFail {
             Some(ref bt) if bt == "" => None,
             Some(bt) => Some(bt),
         };
+        let variant = error.name().map(ToString::to_string);
         SerializableFail {
             error: error.to_string(),
             layers,
             trace,
+            variant,
         }
     }
 }
