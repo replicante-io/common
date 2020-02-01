@@ -7,6 +7,7 @@ use uuid::Uuid;
 
 use super::ActionHistoryItem;
 use super::ActionModel;
+use super::ActionRequester;
 
 /// Action information returned by the API.
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
@@ -31,6 +32,10 @@ pub struct ActionScheduleRequest {
     /// Optional time at which the action was created (by replicore or other system).
     #[serde(default)]
     pub created_ts: Option<DateTime<Utc>>,
+
+    /// Optional action requester to propagate.
+    #[serde(default)]
+    pub requester: Option<ActionRequester>,
 }
 
 impl ActionScheduleRequest {
@@ -45,6 +50,7 @@ impl Default for ActionScheduleRequest {
             action_id: None,
             args: Self::default_args(),
             created_ts: None,
+            requester: None,
         }
     }
 }
