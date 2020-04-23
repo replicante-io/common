@@ -9,7 +9,6 @@ use iron::Response;
 use iron::Set;
 use iron_json_response::JsonResponse;
 use opentracingrust::Error as OTError;
-use serde_json;
 
 use replicante_util_failure::SerializableFail;
 
