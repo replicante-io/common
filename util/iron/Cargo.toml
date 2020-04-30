@@ -1,6 +1,6 @@
 [package]
 name = "replicante_util_iron"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Stefano Pogliani <stefano@spogliani.net>"]
 edition = "2018"
 
@@ -21,17 +21,17 @@ with_test_support = []
 failure = "^0.1.5"
 iron = "^0.6.0"
 iron-json-response = "^0.6.0"
-opentracingrust = "^0.3.1"
-prometheus = "^0.7.0"
+opentracingrust = "^0.4.0"
+prometheus = "^0.8.0"
 router = "^0.6.0"
-sentry = "^0.17.0"
+sentry = "^0.18.0"
 serde_json = "^1.0.13"
 slog = "^2.2.0"
 
 replicante_util_failure = { version = "^0.1.1", path = "../failure" }
-replicante_util_tracing = { version = "^0.3.0", path = "../tracing" }
+replicante_util_tracing = { version = "^0.4.0", path = "../tracing" }
 
 
 [dev-dependencies]
 iron-test = "^0.6.0"
-sentry = { version = "^0.17.0", features = ["with_test_support"] }
+sentry = { version = "^0.18.0", features = ["with_test_support"] }

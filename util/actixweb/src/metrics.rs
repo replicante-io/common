@@ -1,3 +1,5 @@
+use std::task::Context;
+use std::task::Poll;
 use std::time::Duration;
 use std::time::Instant;
 
@@ -10,9 +12,7 @@ use actix_web::HttpRequest;
 use actix_web::HttpResponse;
 use actix_web::Responder;
 use futures::future::ok;
-use futures::future::FutureResult;
-use futures::Future;
-use futures::Poll;
+use futures::future::Ready;
 use prometheus::CounterVec;
 use prometheus::Encoder;
 use prometheus::HistogramOpts;
@@ -80,7 +80,7 @@ impl MetricsExporter {
 
 impl Responder for MetricsExporter {
     type Error = Error;
-    type Future = Result<HttpResponse, Error>;
+    type Future = Ready<Result<HttpResponse, Error>>;
 
     fn respond_to(self, _: &HttpRequest) -> Self::Future {
         let mut buffer = Vec::new();
@@ -90,7 +90,7 @@ impl Responder for MetricsExporter {
         let response = HttpResponse::Ok()
             .header(actix_web::http::header::CONTENT_TYPE, encoder.format_type())
             .body(buffer);
-        Ok(response)
+        ok(response)
     }
 }
 
@@ -118,7 +118,7 @@ where
     type Error = Error;
     type InitError = ();
     type Transform = MiddlewareService<S>;
-    type Future = FutureResult<Self::Transform, Self::InitError>;
+    type Future = Ready<Result<Self::Transform, Self::InitError>>;
 
     fn new_transform(&self, service: S) -> Self::Future {
         ok(MiddlewareService {
@@ -143,32 +143,34 @@ where
     type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
     type Error = Error;
-    type Future = Box<dyn Future<Item = Self::Response, Error = Self::Error>>;
+    type Future = crate::BoxedFuture<Self::Response, Self::Error>;
 
-    fn poll_ready(&mut self) -> Poll<(), Self::Error> {
-        self.service.poll_ready()
+    fn poll_ready(&mut self, ctx: &mut Context) -> Poll<Result<(), Self::Error>> {
+        self.service.poll_ready(ctx)
     }
 
     fn call(&mut self, req: ServiceRequest) -> Self::Future {
         let metrics = self.metrics.clone();
         let request_start = Instant::now();
-        Box::new(self.service.call(req).and_then(move |res| {
+        let response = self.service.call(req);
+        Box::pin(async move {
+            let response = response.await?;
             let duration = duration_to_seconds(request_start.elapsed());
-            let method = res.request().method().as_str();
-            let path = res.request().path();
-            let status = res.response().status();
+            let method = response.request().method().as_str();
+            let path = response.request().path();
+            let status = response.response().status();
             metrics
                 .duration
                 .with_label_values(&[method, path, status.as_str()])
                 .observe(duration);
-            if res.response().error().is_some() {
+            if response.response().error().is_some() {
                 metrics
                     .errors
                     .with_label_values(&[method, path, status.as_str()])
                     .inc();
             }
-            Ok(res)
-        }))
+            Ok(response)
+        })
     }
 }
 

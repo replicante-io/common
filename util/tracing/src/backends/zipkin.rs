@@ -8,7 +8,6 @@ use opentracingrust::FinishedSpan;
 use opentracingrust::Tracer;
 use opentracingrust_zipkin::HttpCollector;
 use opentracingrust_zipkin::HttpCollectorOpts;
-use opentracingrust_zipkin::KafkaCollector;
 use opentracingrust_zipkin::ZipkinEndpoint;
 use opentracingrust_zipkin::ZipkinTracer;
 use slog::Logger;
@@ -55,10 +54,6 @@ pub fn zipkin(config: ZipkinConfig, opts: Opts) -> Result<Tracer> {
                 .headers(headers);
             let collector = HttpCollector::new(options);
             ZipkinCollector::Http(Box::new(collector))
-        }
-        ZipkinConfig::Kafka(config) => {
-            let collector = KafkaCollector::new(endpoint, config.topic, config.kafka);
-            ZipkinCollector::Kafka(Box::new(collector))
         }
     };
 
@@ -117,26 +112,10 @@ fn zipkin_process(
                 );
             }
         }
-        ZipkinCollector::Kafka(ref mut collector) => {
-            if let Some(span) = span {
-                if let Err(error) = collector.collect(span) {
-                    let error = failure::SyncFailure::new(error);
-                    capture_fail!(
-                        &error,
-                        logger,
-                        "Error collecting distributed tracer span";
-                        "collector" => "kafka",
-                        "tracer" => "zipkin",
-                        failure_info(&error),
-                    );
-                }
-            }
-        }
     };
 }
 
 /// Container for the configured zipkin collector.
 enum ZipkinCollector {
     Http(Box<HttpCollector>),
-    Kafka(Box<KafkaCollector>),
 }

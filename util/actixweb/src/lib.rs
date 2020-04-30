@@ -1,3 +1,6 @@
+use std::future::Future;
+use std::pin::Pin;
+
 mod descriptor;
 mod error;
 mod logging;
@@ -18,3 +21,6 @@ pub use self::sentry::ActixWebHubExt;
 pub use self::sentry::SentryMiddleware;
 pub use self::tracing::request_span;
 pub use self::tracing::TracingMiddleware;
+
+/// Type alias for futures returned by middleweres to keep clippy happy.
+type BoxedFuture<R, E> = Pin<Box<dyn Future<Output = std::result::Result<R, E>>>>;

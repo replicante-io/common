@@ -25,10 +25,15 @@ fn request_context(request: &Request) -> SentryRequest {
     for header in request.headers.iter() {
         headers.insert(header.name().to_string(), header.value_string());
     }
+    let url = request
+        .url
+        .to_string()
+        .parse()
+        .expect("URL to re-encode across crate versions");
     SentryRequest {
         headers,
         method: Some(request.method.to_string()),
-        url: Some(request.url.clone().into()),
+        url: Some(url),
         ..Default::default()
     }
 }

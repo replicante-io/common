@@ -1,4 +1,6 @@
 use std::sync::Arc;
+use std::task::Context;
+use std::task::Poll;
 
 use actix_service::Service;
 use actix_service::Transform;
@@ -7,9 +9,7 @@ use actix_web::dev::ServiceResponse;
 use actix_web::Error;
 use actix_web::HttpRequest;
 use futures::future::ok;
-use futures::future::FutureResult;
-use futures::Future;
-use futures::Poll;
+use futures::future::Ready;
 use sentry::internals::ScopeGuard;
 use sentry::Hub;
 
@@ -81,7 +81,7 @@ where
     type Error = Error;
     type InitError = ();
     type Transform = MiddlewareService<S>;
-    type Future = FutureResult<Self::Transform, Self::InitError>;
+    type Future = Ready<Result<Self::Transform, Self::InitError>>;
 
     fn new_transform(&self, service: S) -> Self::Future {
         ok(MiddlewareService {
@@ -108,10 +108,10 @@ where
     type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
     type Error = Error;
-    type Future = Box<dyn Future<Item = Self::Response, Error = Self::Error>>;
+    type Future = crate::BoxedFuture<Self::Response, Self::Error>;
 
-    fn poll_ready(&mut self) -> Poll<(), Self::Error> {
-        self.service.poll_ready()
+    fn poll_ready(&mut self, ctx: &mut Context) -> Poll<Result<(), Self::Error>> {
+        self.service.poll_ready(ctx)
     }
 
     fn call(&mut self, mut req: ServiceRequest) -> Self::Future {
@@ -138,19 +138,21 @@ where
         req.head_mut()
             .extensions_mut()
             .insert(SentryExtension { hub, scope });
-        Box::new(self.service.call(req).and_then(move |res| {
+        let response = self.service.call(req);
+        Box::pin(async move {
             // Process sentry context and events if possible.
-            let sentry: Option<SentryExtension> = res.request().extensions_mut().remove();
+            let response = response.await?;
+            let sentry: Option<SentryExtension> = response.request().extensions_mut().remove();
             if let Some(sentry) = sentry {
                 // Send sentry event for 5xx/4xx responses.
-                let code = res.response().status().as_u16();
+                let code = response.response().status().as_u16();
                 if code >= report_code {
                     let level = sentry_level_for_code(code);
-                    let message = res
+                    let message = response
                         .response()
                         .error()
                         .map(ToString::to_string)
-                        .unwrap_or_else(|| format!("HTTP {}", res.response().status()));
+                        .unwrap_or_else(|| format!("HTTP {}", response.response().status()));
                     sentry.hub.capture_event(sentry::protocol::Event {
                         level,
                         message: Some(message),
@@ -162,8 +164,8 @@ where
                 drop(sentry.scope);
                 drop(sentry.hub);
             }
-            Ok(res)
-        }))
+            Ok(response)
+        })
     }
 }
 
@@ -207,8 +209,7 @@ fn sentry_request_context(req: &ServiceRequest) -> sentry::protocol::Request {
 
 #[cfg(test)]
 mod tests {
-    use actix_service::Service;
-    use actix_web::test::block_on;
+    use actix_web::test::call_service;
     use actix_web::test::init_service;
     use actix_web::test::TestRequest;
     use actix_web::web;
@@ -216,6 +217,7 @@ mod tests {
     use actix_web::Error;
     use actix_web::HttpResponse;
     use failure::err_msg;
+    use futures::executor::block_on;
     use sentry::capture_message;
     use sentry::test::with_captured_events;
     use sentry::Hub;
@@ -224,8 +226,12 @@ mod tests {
     use super::ActixWebHubExt;
     use super::SentryMiddleware;
 
-    #[test]
-    fn capture_event() {
+    async fn respond_500() -> Result<HttpResponse, Error> {
+        Err(Error::from(err_msg("test")))
+    }
+
+    #[actix_rt::test]
+    async fn capture_event() {
         let mut app = init_service(
             App::new()
                 .wrap(SentryMiddleware::with_current_hub(500))
@@ -235,10 +241,11 @@ mod tests {
                     });
                     HttpResponse::Ok()
                 })),
-        );
+        )
+        .await;
         let request = TestRequest::with_uri("https://server:1234/test").to_request();
         let events = with_captured_events(|| {
-            block_on(app.call(request)).unwrap();
+            block_on(call_service(&mut app, request));
         });
         assert_eq!(events.len(), 1);
         let event = events.into_iter().next().unwrap();
@@ -248,59 +255,59 @@ mod tests {
         assert_eq!(request.url.unwrap().to_string(), "https://server:1234/test");
     }
 
-    #[test]
-    fn capture_event_on_eror() {
+    #[actix_rt::test]
+    async fn capture_event_on_eror() {
         let mut app = init_service(
             App::new()
                 .wrap(SentryMiddleware::with_current_hub(500))
-                .service(
-                    web::resource("/test")
-                        .to(|| -> Result<HttpResponse, Error> { Err(err_msg("test"))? }),
-                ),
-        );
+                .service(web::resource("/test").to(respond_500)),
+        )
+        .await;
         let request = TestRequest::with_uri("https://server:1234/test").to_request();
         let events = with_captured_events(|| {
-            block_on(app.call(request)).unwrap();
+            block_on(call_service(&mut app, request));
         });
         assert_eq!(events.len(), 1);
         let event = events.into_iter().next().unwrap();
         assert_eq!(event.message.unwrap(), "test");
     }
 
-    #[test]
-    fn capture_event_on_400() {
+    #[actix_rt::test]
+    async fn capture_event_on_400() {
         let mut app = init_service(
             App::new()
                 .wrap(SentryMiddleware::with_current_hub(400))
                 .service(web::resource("/test").to(|| HttpResponse::BadRequest())),
-        );
+        )
+        .await;
         let request = TestRequest::with_uri("https://server:1234/test").to_request();
         let events = with_captured_events(|| {
-            block_on(app.call(request)).unwrap();
+            block_on(call_service(&mut app, request));
         });
         assert_eq!(events.len(), 1);
         let event = events.into_iter().next().unwrap();
         assert_eq!(event.message.unwrap(), "HTTP 400 Bad Request");
     }
 
-    #[test]
-    fn capture_event_on_500() {
+    #[actix_rt::test]
+    async fn capture_event_on_500() {
         let mut app = init_service(
             App::new()
                 .wrap(SentryMiddleware::with_current_hub(500))
                 .service(web::resource("/test").to(|| HttpResponse::InternalServerError())),
-        );
+        )
+        .await;
         let request = TestRequest::with_uri("https://server:1234/test").to_request();
         let events = with_captured_events(|| {
-            block_on(app.call(request)).unwrap();
+            block_on(call_service(&mut app, request));
         });
         assert_eq!(events.len(), 1);
         let event = events.into_iter().next().unwrap();
         assert_eq!(event.message.unwrap(), "HTTP 500 Internal Server Error");
     }
 
-    #[test]
-    fn main_hub_misses_test_events() {
+    #[actix_rt::test]
+    async fn main_hub_misses_test_events() {
         let mut app = init_service(App::new().wrap(SentryMiddleware::new(500)).service(
             web::resource("/test").to(|req| {
                 Hub::run_from_request(&req, || {
@@ -308,24 +315,26 @@ mod tests {
                 });
                 HttpResponse::Ok()
             }),
-        ));
+        ))
+        .await;
         let request = TestRequest::with_uri("https://server:1234/test").to_request();
         let events = with_captured_events(|| {
-            block_on(app.call(request)).unwrap();
+            block_on(call_service(&mut app, request));
         });
         assert_eq!(events.len(), 0);
     }
 
-    #[test]
-    fn skip_event_on_400() {
+    #[actix_rt::test]
+    async fn skip_event_on_400() {
         let mut app = init_service(
             App::new()
                 .wrap(SentryMiddleware::with_current_hub(401))
                 .service(web::resource("/test").to(|| HttpResponse::BadRequest())),
-        );
+        )
+        .await;
         let request = TestRequest::with_uri("https://server:1234/test").to_request();
         let events = with_captured_events(|| {
-            block_on(app.call(request)).unwrap();
+            block_on(call_service(&mut app, request));
         });
         assert_eq!(events.len(), 0);
     }

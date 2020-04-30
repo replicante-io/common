@@ -1,4 +1,6 @@
 use std::sync::Arc;
+use std::task::Context;
+use std::task::Poll;
 
 use actix_service::Service;
 use actix_service::Transform;
@@ -7,9 +9,7 @@ use actix_web::dev::ServiceRequest;
 use actix_web::dev::ServiceResponse;
 use actix_web::Error;
 use futures::future::ok;
-use futures::future::FutureResult;
-use futures::Future;
-use futures::Poll;
+use futures::future::Ready;
 use opentracingrust::Span;
 use opentracingrust::Tracer;
 use slog::Logger;
@@ -71,7 +71,7 @@ where
     type Error = Error;
     type InitError = ();
     type Transform = MiddlewareService<S>;
-    type Future = FutureResult<Self::Transform, Self::InitError>;
+    type Future = Ready<Result<Self::Transform, Self::InitError>>;
 
     fn new_transform(&self, service: S) -> Self::Future {
         ok(MiddlewareService {
@@ -100,10 +100,10 @@ where
     type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
     type Error = Error;
-    type Future = Box<dyn Future<Item = Self::Response, Error = Self::Error>>;
+    type Future = crate::BoxedFuture<Self::Response, Self::Error>;
 
-    fn poll_ready(&mut self) -> Poll<(), Self::Error> {
-        self.service.poll_ready()
+    fn poll_ready(&mut self, ctx: &mut Context) -> Poll<Result<(), Self::Error>> {
+        self.service.poll_ready(ctx)
     }
 
     fn call(&mut self, mut req: ServiceRequest) -> Self::Future {
@@ -136,12 +136,14 @@ where
         // Send the request and handle the span on response.
         let tracer = self.tracer.clone();
         req.head_mut().extensions_mut().insert(span);
-        Box::new(self.service.call(req).and_then(move |mut res| {
-            let span: Option<Span> = res.request().extensions_mut().remove();
+        let response = self.service.call(req);
+        Box::pin(async move {
+            let mut response = response.await?;
+            let span: Option<Span> = response.request().extensions_mut().remove();
             if let Some(span) = span {
                 let result = HeadersCarrier::inject(
                     span.context(),
-                    &mut res.response_mut().headers_mut(),
+                    &mut response.response_mut().headers_mut(),
                     &tracer,
                 );
                 if let Err(error) = result {
@@ -163,7 +165,7 @@ where
                     );
                 }
             }
-            Ok(res)
-        }))
+            Ok(response)
+        })
     }
 }

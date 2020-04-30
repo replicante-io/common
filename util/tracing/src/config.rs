@@ -37,10 +37,6 @@ pub enum ZipkinConfig {
     /// Zipkin HTTP transport options.
     #[serde(rename = "http")]
     HTTP(ZipkinHttp),
-
-    /// Zipkin Kafka transport options.
-    #[serde(rename = "kafka")]
-    Kafka(ZipkinKafka),
 }
 
 /// Zipkin HTTP transport options.
@@ -65,27 +61,6 @@ pub struct ZipkinHttp {
 impl ZipkinHttp {
     fn default_flush_count() -> usize {
         100
-    }
-}
-
-/// Zipkin Kafka transport options.
-#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
-pub struct ZipkinKafka {
-    /// List of URLs to seed the [Kafka] client.
-    ///
-    /// [Kafka]: https://kafka.apache.org/
-    pub kafka: Vec<String>,
-
-    /// [Kafka] topic to publish spans to (defaults to `zipkin`).
-    ///
-    /// [Kafka]: https://kafka.apache.org/
-    #[serde(default = "ZipkinKafka::default_topic")]
-    pub topic: String,
-}
-
-impl ZipkinKafka {
-    fn default_topic() -> String {
-        String::from("zipkin")
     }
 }
 
@@ -116,24 +91,25 @@ mod tests {
 
         use super::super::Config;
         use super::super::ZipkinConfig;
-        use super::super::ZipkinKafka;
+        use super::super::ZipkinHttp;
 
         #[test]
         fn deserialise() {
             let text = r#"backend: zipkin
 options:
-  transport: kafka
+  transport: http
   options:
-    kafka:
-      - def
-      - ghi
-    topic: test"#;
+    flush_count: 1
+    flush_timeout_millis: 2000
+    url: http://localhost:1234"#;
             let config: Config = serde_yaml::from_str(text).unwrap();
             assert_eq!(
                 config,
-                Config::Zipkin(ZipkinConfig::Kafka(ZipkinKafka {
-                    kafka: vec![String::from("def"), String::from("ghi")],
-                    topic: String::from("test"),
+                Config::Zipkin(ZipkinConfig::HTTP(ZipkinHttp {
+                    flush_count: 1,
+                    flush_timeout_millis: Some(2000),
+                    headers: Default::default(),
+                    url: String::from("http://localhost:1234"),
                 }))
             );
         }
@@ -142,36 +118,38 @@ options:
         fn deserialise_defaults() {
             let text = r#"backend: zipkin
 options:
-  transport: kafka
+  transport: http
   options:
-    kafka:
-      - def
-      - ghi"#;
+    url: http://localhost:1234"#;
             let config: Config = serde_yaml::from_str(text).unwrap();
             assert_eq!(
                 config,
-                Config::Zipkin(ZipkinConfig::Kafka(ZipkinKafka {
-                    kafka: vec![String::from("def"), String::from("ghi")],
-                    topic: String::from("zipkin"),
+                Config::Zipkin(ZipkinConfig::HTTP(ZipkinHttp {
+                    flush_count: 100,
+                    flush_timeout_millis: None,
+                    headers: Default::default(),
+                    url: String::from("http://localhost:1234"),
                 }))
             );
         }
 
         #[test]
-        #[should_panic(expected = "missing field `kafka`")]
+        #[should_panic(expected = "missing field `url`")]
         fn deserialise_fails() {
             let text = r#"backend: zipkin
 options:
-  transport: kafka
+  transport: http
   options: {}"#;
             let _config: Config = serde_yaml::from_str(text).unwrap();
         }
 
         #[test]
         fn serialise() {
-            let config = Config::Zipkin(ZipkinConfig::Kafka(ZipkinKafka {
-                kafka: vec![String::from("def"), String::from("ghi")],
-                topic: String::from("test"),
+            let config = Config::Zipkin(ZipkinConfig::HTTP(ZipkinHttp {
+                flush_count: 100,
+                flush_timeout_millis: None,
+                headers: Default::default(),
+                url: String::from("http://localhost:1234"),
             }));
             let text = serde_yaml::to_string(&config).unwrap();
             assert_eq!(
@@ -179,12 +157,12 @@ options:
                 r#"---
 backend: zipkin
 options:
-  transport: kafka
+  transport: http
   options:
-    kafka:
-      - def
-      - ghi
-    topic: test"#
+    flush_count: 100
+    flush_timeout_millis: ~
+    headers: {}
+    url: "http://localhost:1234""#
             );
         }
     }

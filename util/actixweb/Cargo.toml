@@ -1,6 +1,6 @@
 [package]
 name = "replicante_util_actixweb"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Stefano Pogliani <stefano@spogliani.net>"]
 edition = "2018"
 
@@ -13,18 +13,19 @@ license = "MIT"
 
 
 [dependencies]
-actix-http = "^0.2.7"
-actix-service = "^0.4.1"
-actix-web = "^1.0.0"
+actix-http = "^1.0.1"
+actix-service = "^1.0.5"
+actix-web = "^2.0.0"
 failure = "^0.1.5"
-futures = "^0.1.25"
+futures = "^0.3.4"
 opentracingrust = "^0.3.1"
-prometheus = "^0.7.0"
-sentry = "^0.17.0"
+prometheus = "^0.8.0"
+sentry = "^0.18.0"
 slog = "^2.2.0"
 
 replicante_util_failure = { version = "^0.1.1", path = "../failure" }
 
 
 [dev-dependencies]
-sentry = { version = "^0.17.0", features = ["with_test_support"] }
+actix-rt = "^1.0.0"
+sentry = { version = "^0.18.0", features = ["with_test_support"] }
