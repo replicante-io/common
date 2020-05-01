@@ -5,6 +5,7 @@ use std::time::Instant;
 
 use actix_service::Service;
 use actix_service::Transform;
+use actix_web::dev::Factory;
 use actix_web::dev::ServiceRequest;
 use actix_web::dev::ServiceResponse;
 use actix_web::Error;
@@ -12,6 +13,7 @@ use actix_web::HttpRequest;
 use actix_web::HttpResponse;
 use actix_web::Responder;
 use futures::future::ok;
+use futures::future::ready;
 use futures::future::Ready;
 use prometheus::CounterVec;
 use prometheus::Encoder;
@@ -68,13 +70,21 @@ impl MetricsCollector {
 }
 
 /// ActixWeb `Responder` to export prometheus metrics.
+#[derive(Clone)]
 pub struct MetricsExporter {
     registry: Registry,
 }
 
 impl MetricsExporter {
-    pub fn new(registry: Registry) -> MetricsExporter {
+    pub fn factory(registry: Registry) -> MetricsExporter {
         MetricsExporter { registry }
+    }
+}
+
+impl Factory<(), Ready<MetricsExporter>, MetricsExporter> for MetricsExporter {
+    fn call(&self, _: ()) -> Ready<MetricsExporter> {
+        let registry = self.registry.clone();
+        ready(MetricsExporter { registry })
     }
 }
 
@@ -178,4 +188,28 @@ where
 fn duration_to_seconds(duration: Duration) -> f64 {
     let nanos = f64::from(duration.subsec_nanos()) / 1e9;
     duration.as_secs() as f64 + nanos
+}
+
+#[cfg(test)]
+mod tests {
+    use actix_web::http::StatusCode;
+    use actix_web::test::call_service;
+    use actix_web::test::init_service;
+    use actix_web::test::TestRequest;
+    use actix_web::web;
+    use actix_web::App;
+    use prometheus::Registry;
+
+    use super::MetricsExporter;
+
+    #[actix_rt::test]
+    async fn metrics_exporter_returns_200() {
+        let registry = Registry::new();
+        let exporter = MetricsExporter::factory(registry);
+        let service = web::resource("/").to(exporter);
+        let mut app = init_service(App::new().service(service)).await;
+        let request = TestRequest::with_uri("https://server:1234/").to_request();
+        let response = call_service(&mut app, request).await;
+        assert_eq!(response.status(), StatusCode::OK);
+    }
 }
