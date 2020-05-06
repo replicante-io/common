@@ -1,12 +1,3 @@
-extern crate crossbeam_channel;
-extern crate humthreads;
-#[cfg(test)]
-extern crate nix;
-extern crate signal_hook;
-extern crate slog;
-
-extern crate replicante_util_failure;
-
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;

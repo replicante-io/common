@@ -19,7 +19,7 @@ use self::tracing::TracedHandler;
 /// [`Router`]: router/struct.Router.html
 pub struct Router {
     flags: HashMap<&'static str, bool>,
-    inner: ::iron_router::Router,
+    inner: iron_router::Router,
     logger: Logger,
     tracer: Option<Arc<Tracer>>,
 }
@@ -32,7 +32,7 @@ impl Router {
     where
         T: Into<Option<Arc<Tracer>>>,
     {
-        let inner = ::iron_router::Router::new();
+        let inner = iron_router::Router::new();
         let tracer = tracer.into();
         Router {
             flags,
@@ -139,7 +139,7 @@ pub struct RootedRouter<'a> {
     enabled: bool,
     logger: &'a Logger,
     prefix: &'static str,
-    router: &'a mut ::iron_router::Router,
+    router: &'a mut iron_router::Router,
     tracer: Option<Arc<Tracer>>,
 }
 

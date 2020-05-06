@@ -1,11 +1,3 @@
-extern crate serde;
-extern crate serde_derive;
-extern crate slog;
-extern crate slog_async;
-#[cfg(feature = "journald")]
-extern crate slog_journald;
-extern crate slog_json;
-
 use std::io::stdout;
 use std::sync::Mutex;
 

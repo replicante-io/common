@@ -1,18 +1,3 @@
-extern crate failure;
-extern crate humthreads;
-extern crate iron;
-extern crate opentracingrust;
-extern crate opentracingrust_zipkin;
-extern crate reqwest;
-extern crate serde;
-extern crate serde_derive;
-#[cfg(test)]
-extern crate serde_yaml;
-extern crate slog;
-
-extern crate replicante_util_failure;
-extern crate replicante_util_upkeep;
-
 use std::sync::Arc;
 use std::time::Duration;
 

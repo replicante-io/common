@@ -1,9 +1,3 @@
-extern crate failure;
-extern crate sentry;
-extern crate serde;
-extern crate serde_derive;
-extern crate slog;
-
 mod capture;
 mod format;
 mod log;

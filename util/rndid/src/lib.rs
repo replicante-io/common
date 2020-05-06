@@ -1,8 +1,3 @@
-extern crate data_encoding;
-extern crate rand;
-extern crate serde;
-extern crate serde_derive;
-
 use std::fmt;
 use std::str::FromStr;
 

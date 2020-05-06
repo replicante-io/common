@@ -1,16 +1,4 @@
-extern crate failure;
-extern crate iron;
-extern crate iron_json_response;
-#[cfg(test)]
-extern crate iron_test;
-extern crate opentracingrust;
-extern crate prometheus;
 extern crate router as iron_router;
-extern crate serde_json;
-extern crate slog;
-
-extern crate replicante_util_failure;
-extern crate replicante_util_tracing;
 
 use iron::Request;
 use iron::Response;
