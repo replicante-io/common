@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - ActixWeb late `AppConfig` manager.
 
 ### Changed
+- **BREAKING**: Removed `RootDescriptor::resource` (use `AppConfigContext::scoped_service`).
 - **BREAKING**: Update dependencies.
 
 ## 0.1.0 - 2020-03-07

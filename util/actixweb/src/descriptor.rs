@@ -75,6 +75,10 @@ pub trait RootDescriptor {
     fn prefix(&self) -> &'static str;
 
     /// Create a resource for a path underneath the root.
+    #[deprecated(
+        since = "0.2.0",
+        note = "use AppConfig and AppConfigContext::scoped_service"
+    )]
     fn resource(&self, path: &str) -> Resource {
         match path {
             "" | "/" => web::resource(self.prefix()),
