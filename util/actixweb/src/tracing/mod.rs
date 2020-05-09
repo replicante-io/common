@@ -8,6 +8,7 @@ use actix_web::dev::Extensions;
 use actix_web::dev::ServiceRequest;
 use actix_web::dev::ServiceResponse;
 use actix_web::Error;
+use actix_web::HttpRequest;
 use futures::future::ok;
 use futures::future::Ready;
 use opentracingrust::Span;
@@ -22,9 +23,23 @@ mod carriers;
 pub use self::carriers::HeadersCarrier;
 
 /// Access the request's tracing span.
+#[deprecated(
+    since = "0.2.0",
+    note = "use replicante_util_actixweb::with_request_span"
+)]
 pub fn request_span(req: &mut Extensions) -> &mut Span {
     req.get_mut::<Span>()
         .expect("request is missing Span extention")
+}
+
+/// Access the request's tracing span.
+pub fn with_request_span<B, R>(request: &mut HttpRequest, block: B) -> R
+where
+    B: FnOnce(Option<&mut Span>) -> R,
+{
+    let mut exts = request.extensions_mut();
+    let span = exts.get_mut::<Span>();
+    block(span)
 }
 
 /// Actix Web middleware to inject an `opentracingrust::Span` on each request.

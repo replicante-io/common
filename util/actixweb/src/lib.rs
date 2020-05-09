@@ -22,7 +22,9 @@ pub use self::metrics::MetricsExporter;
 pub use self::metrics::MetricsMiddleware;
 pub use self::sentry::ActixWebHubExt;
 pub use self::sentry::SentryMiddleware;
+#[allow(deprecated)]
 pub use self::tracing::request_span;
+pub use self::tracing::with_request_span;
 pub use self::tracing::TracingMiddleware;
 
 /// Type alias for futures returned by middleweres to keep clippy happy.
