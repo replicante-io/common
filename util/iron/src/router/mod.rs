@@ -12,7 +12,6 @@ mod tracing;
 #[cfg(feature = "with_test_support")]
 pub use self::tracing::mock_request_span;
 pub use self::tracing::request_span;
-use self::tracing::TracedHandler;
 
 /// A builder object for an `iron-router` [`Router`].
 ///
@@ -20,26 +19,18 @@ use self::tracing::TracedHandler;
 pub struct Router {
     flags: HashMap<&'static str, bool>,
     inner: iron_router::Router,
-    logger: Logger,
-    tracer: Option<Arc<Tracer>>,
 }
 
 impl Router {
     /// Wraps a new [`Router`] for manipulation.
     ///
     /// [`Router`]: router/struct.Router.html
-    pub fn new<T>(flags: HashMap<&'static str, bool>, logger: Logger, tracer: T) -> Router
+    pub fn new<T>(flags: HashMap<&'static str, bool>, _logger: Logger, _tracer: T) -> Router
     where
         T: Into<Option<Arc<Tracer>>>,
     {
         let inner = iron_router::Router::new();
-        let tracer = tracer.into();
-        Router {
-            flags,
-            inner,
-            logger,
-            tracer,
-        }
+        Router { flags, inner }
     }
 
     /// Convert this `Router` into an iron [`Chain`].
@@ -52,20 +43,12 @@ impl Router {
     /// Returns a "veiw" on the router to register endpoints under a specific root.
     pub fn for_root<R: RootDescriptor>(&mut self, root: &R) -> RootedRouter {
         let enabled = root.enabled(&self.flags);
-        let logger = &self.logger;
         let prefix = root.prefix();
         let router = &mut self.inner;
-        let tracer = if root.trace() {
-            self.tracer.clone()
-        } else {
-            None
-        };
         RootedRouter {
             enabled,
-            logger,
             prefix,
             router,
-            tracer,
         }
     }
 }
@@ -137,10 +120,8 @@ pub trait RootDescriptor {
 /// registered with as well as the the Iron `::router::Router` id.
 pub struct RootedRouter<'a> {
     enabled: bool,
-    logger: &'a Logger,
     prefix: &'static str,
     router: &'a mut iron_router::Router,
-    tracer: Option<Arc<Tracer>>,
 }
 
 impl<'a> RootedRouter<'a> {
@@ -199,14 +180,7 @@ impl<'a> RootedRouter<'a> {
         }
         let glob = self.prefix.to_string() + glob.as_ref();
         let route_id = self.prefix.to_string() + route_id.as_ref();
-        match self.tracer.clone() {
-            None => self.router.route(method, glob, handler, route_id),
-            Some(tracer) => {
-                let handler =
-                    TracedHandler::new(tracer, glob.clone(), self.logger.clone(), handler);
-                self.router.route(method, glob, handler, route_id)
-            }
-        };
+        self.router.route(method, glob, handler, route_id);
         self
     }
 }

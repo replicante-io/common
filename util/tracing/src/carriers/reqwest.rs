@@ -27,7 +27,7 @@ use reqwest::header::HeaderValue;
 /// Optionally extract a context:
 ///
 /// ```ignore
-/// use replicante_util_tracing::carriers::iron::HeadersCarrier;
+/// use replicante_util_tracing::carriers::reqwest::HeadersCarrier;
 ///
 /// let mut response = Response::new();
 /// HeadersCarrier::extract(span.context(), &response.headers, &tracer);
