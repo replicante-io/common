@@ -5,7 +5,6 @@ members = [
   "models/api",
   "util/actixweb",
   "util/failure",
-  "util/iron",
   "util/rndid",
   "util/tracing",
   "util/upkeep",
