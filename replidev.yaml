@@ -1,3 +1,22 @@
 project: common
-ignored_crates:
-  - 'Cargo.toml'
+
+crates:
+  ignored:
+    - 'Cargo.toml'
+
+  publish:
+    - path: 'logging/Cargo.toml'
+    - path: 'models/agent/Cargo.toml'
+    - path: 'util/failure/Cargo.toml'
+    - path: 'util/actixweb/Cargo.toml'
+      may_fail_check: true
+    - path: 'util/upkeep/Cargo.toml'
+      may_fail_check: true
+    - path: 'util/tracing/Cargo.toml'
+      may_fail_check: true
+
+  workspaces:
+    - 'Cargo.toml'
+
+release_tag:
+  from: date

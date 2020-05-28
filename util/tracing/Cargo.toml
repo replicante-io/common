@@ -23,8 +23,8 @@ serde = "^1.0.34"
 serde_derive = "^1.0.34"
 slog = "^2.2.1"
 
-replicante_util_failure = { version = "^0.1.1", path = "../failure" }
-replicante_util_upkeep = { version = "^0.2.0", path = "../upkeep" }
+replicante_util_failure = { version = "^0.1.3", path = "../failure" }
+replicante_util_upkeep = { version = "^0.2.1", path = "../upkeep" }
 
 [dev-dependencies]
 serde_yaml = "^0.8.0"

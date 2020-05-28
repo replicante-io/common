@@ -23,7 +23,7 @@ prometheus = "^0.9.0"
 sentry = "^0.18.0"
 slog = "^2.2.0"
 
-replicante_util_failure = { version = "^0.1.1", path = "../failure" }
+replicante_util_failure = { version = "^0.1.3", path = "../failure" }
 
 
 [dev-dependencies]
