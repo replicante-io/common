@@ -43,10 +43,11 @@ use replicante_util_failure::failure_info;
 /// it will instead exit immediately.
 ///
 /// # Example
-/// ```norun
+/// ```no_run
+/// # use replicante_util_upkeep::Upkeep;
 /// let mut up = Upkeep::new();
 /// up.on_shutdown(|| println!("Bye :wave:"));
-/// up.wait();
+/// up.keepalive();
 /// ```
 pub struct Upkeep {
     callbacks: Vec<Box<dyn Fn()>>,
