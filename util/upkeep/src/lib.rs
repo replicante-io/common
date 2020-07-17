@@ -49,7 +49,7 @@ use replicante_util_failure::failure_info;
 /// up.wait();
 /// ```
 pub struct Upkeep {
-    callbacks: Vec<Box<dyn Fn() -> ()>>,
+    callbacks: Vec<Box<dyn Fn()>>,
     logger: Logger,
     registered_signals: Vec<SigId>,
     signal_flag: Arc<AtomicBool>,
@@ -133,7 +133,7 @@ impl Upkeep {
     /// Register a callback to be executed when a shutdown request is received.
     pub fn on_shutdown<F>(&mut self, callback: F)
     where
-        F: Fn() -> () + 'static,
+        F: Fn() + 'static,
     {
         self.callbacks.push(Box::new(callback))
     }
