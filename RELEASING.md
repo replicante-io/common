@@ -15,6 +15,10 @@ $ git commit .
 $ replidev release check
 
 # Once all changes are committed and the checks pass publish the release.
-# This will also publish any crate/docker image in the project.
+# This will also publish any crate/docker image in the project and tag the current commit.
 $ replidev release publish
+
+# Push the release commit (if needed) and the release tag.
+$ git push
+$ git push --tags
 ```
