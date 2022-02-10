@@ -26,7 +26,7 @@ pub fn zipkin(config: ZipkinConfig, opts: Opts) -> Result<Tracer> {
     let (tracer, receiver) = ZipkinTracer::new();
     let endpoint = ZipkinEndpoint::new(None, None, Some(opts.service_name.to_string()), None);
     let mut collector = match config {
-        ZipkinConfig::HTTP(config) => {
+        ZipkinConfig::Http(config) => {
             let mut headers = reqwest::header::HeaderMap::new();
             for (key, value) in config.headers.into_iter() {
                 let key = reqwest::header::HeaderName::from_str(&key).with_context(|_| {

@@ -36,7 +36,7 @@ impl Default for Config {
 pub enum ZipkinConfig {
     /// Zipkin HTTP transport options.
     #[serde(rename = "http")]
-    HTTP(ZipkinHttp),
+    Http(ZipkinHttp),
 }
 
 /// Zipkin HTTP transport options.
@@ -82,7 +82,7 @@ mod tests {
         fn serialise() {
             let config = Config::Noop;
             let text = serde_yaml::to_string(&config).unwrap();
-            assert_eq!(text, "---\nbackend: noop");
+            assert_eq!(text, "---\nbackend: noop\n");
         }
     }
 
@@ -105,7 +105,7 @@ options:
             let config: Config = serde_yaml::from_str(text).unwrap();
             assert_eq!(
                 config,
-                Config::Zipkin(ZipkinConfig::HTTP(ZipkinHttp {
+                Config::Zipkin(ZipkinConfig::Http(ZipkinHttp {
                     flush_count: 1,
                     flush_timeout_millis: Some(2000),
                     headers: Default::default(),
@@ -124,7 +124,7 @@ options:
             let config: Config = serde_yaml::from_str(text).unwrap();
             assert_eq!(
                 config,
-                Config::Zipkin(ZipkinConfig::HTTP(ZipkinHttp {
+                Config::Zipkin(ZipkinConfig::Http(ZipkinHttp {
                     flush_count: 100,
                     flush_timeout_millis: None,
                     headers: Default::default(),
@@ -145,7 +145,7 @@ options:
 
         #[test]
         fn serialise() {
-            let config = Config::Zipkin(ZipkinConfig::HTTP(ZipkinHttp {
+            let config = Config::Zipkin(ZipkinConfig::Http(ZipkinHttp {
                 flush_count: 100,
                 flush_timeout_millis: None,
                 headers: Default::default(),
@@ -162,7 +162,8 @@ options:
     flush_count: 100
     flush_timeout_millis: ~
     headers: {}
-    url: "http://localhost:1234""#
+    url: "http://localhost:1234"
+"#
             );
         }
     }

@@ -34,10 +34,7 @@ impl MaybeTracer {
     where
         B: FnOnce(&Tracer) -> T,
     {
-        match self.0.as_ref() {
-            None => None,
-            Some(tracer) => Some(block(tracer)),
-        }
+        self.0.as_ref().map(|tracer| block(tracer))
     }
 }
 

@@ -39,10 +39,12 @@ pub struct SerializableFail {
 
 impl<E: Fail> From<&E> for SerializableFail {
     fn from(error: &E) -> SerializableFail {
-        let layers = Fail::iter_chain(error).map(ToString::to_string).collect();
+        let layers = <dyn Fail>::iter_chain(error)
+            .map(ToString::to_string)
+            .collect();
         let trace = match error.backtrace().map(ToString::to_string) {
             None => None,
-            Some(ref bt) if bt == "" => None,
+            Some(ref bt) if bt.is_empty() => None,
             Some(bt) => Some(bt),
         };
         let variant = error.name().map(ToString::to_string);

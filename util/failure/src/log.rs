@@ -6,7 +6,7 @@ use slog::KV;
 
 /// Extract failure information to be added to structured logging.
 pub fn failure_info(fail: &dyn Fail) -> FailureInfo {
-    let trace = match Fail::find_root_cause(fail).backtrace() {
+    let trace = match <dyn Fail>::find_root_cause(fail).backtrace() {
         None => None,
         Some(ref bt) if bt.to_string() == "" => None,
         Some(bt) => Some(bt.to_string()),
@@ -20,7 +20,7 @@ pub fn failure_info(fail: &dyn Fail) -> FailureInfo {
             .map(|cause| cause.find_root_cause())
             .and_then(Fail::name)
             .map(String::from),
-        layers: Fail::iter_chain(fail).count(),
+        layers: <dyn Fail>::iter_chain(fail).count(),
         message: fail.to_string(),
         name: fail.name().map(String::from),
         trace,

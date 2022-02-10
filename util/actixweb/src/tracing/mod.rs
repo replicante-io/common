@@ -130,7 +130,7 @@ where
         let mut span = self.tracer.span(name);
 
         // Extend the span with a parent and some request attributes.
-        match HeadersCarrier::extract(&mut req.headers_mut(), &self.tracer) {
+        match HeadersCarrier::extract(req.headers_mut(), &self.tracer) {
             Ok(Some(context)) => span.child_of(context),
             Ok(None) => (),
             Err(error) => {
@@ -158,7 +158,7 @@ where
             if let Some(span) = span {
                 let result = HeadersCarrier::inject(
                     span.context(),
-                    &mut response.response_mut().headers_mut(),
+                    response.response_mut().headers_mut(),
                     &tracer,
                 );
                 if let Err(error) = result {
