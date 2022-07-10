@@ -14,7 +14,7 @@ pub use self::enums::ActionRequester;
 pub use self::enums::ActionState;
 
 /// Transition history records for actions.
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct ActionHistoryItem {
     /// ID of the action that transitioned.
     pub action_id: Uuid,
@@ -38,7 +38,7 @@ pub struct ActionListItem {
 }
 
 /// Action state and metadata information.
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct ActionModel {
     /// Arguments passed to the action when invoked.
     pub args: Json,
