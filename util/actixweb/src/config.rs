@@ -5,10 +5,13 @@ use actix_web::dev::HttpServiceFactory;
 use actix_web::web::ServiceConfig;
 use actix_web::Scope;
 
+/// Type alias for AppConfig functions to improve code readability.
+type AppConfigFn<T> = Arc<dyn Fn(&mut AppConfigContext<T>) + Send + Sync>;
+
 /// On-demand Actix Web `App` configuration with functions and closures.
 #[derive(Clone)]
 pub struct AppConfig<T> {
-    configs: Vec<Arc<dyn Fn(&mut AppConfigContext<T>) + Send + Sync>>,
+    configs: Vec<AppConfigFn<T>>,
 }
 
 impl<T> AppConfig<T> {
@@ -28,7 +31,6 @@ impl<T> AppConfig<T> {
         }
 
         // Configure the application with all of its scopes.
-        drop(config_context);
         scopes.configure(app);
     }
 

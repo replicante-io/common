@@ -1,3 +1,5 @@
+use std::fmt::Write;
+
 use failure::Fail;
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
@@ -5,9 +7,9 @@ use serde_derive::Serialize;
 /// Format the given `Fail` for display to the user.
 pub fn format_fail(fail: &dyn Fail) -> String {
     let mut message = String::new();
-    message.push_str(&format!("Error: {}", fail));
+    write!(message, "Error: {}", fail).expect("failed to format error message");
     for cause in fail.iter_causes() {
-        message.push_str(&format!("\n    Caused by: {}", cause));
+        write!(message, "\n    Caused by: {}", cause).expect("failed to format error message");
     }
     let bt = match fail.find_root_cause().backtrace() {
         None => None,
@@ -15,7 +17,7 @@ pub fn format_fail(fail: &dyn Fail) -> String {
         Some(bt) => Some(bt),
     };
     if let Some(bt) = bt {
-        message.push_str(&format!("\n    Backtrace: {}", bt));
+        write!(message, "\n    Backtrace: {}", bt).expect("failed to format error message");
     }
     message
 }

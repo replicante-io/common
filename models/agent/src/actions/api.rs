@@ -10,14 +10,14 @@ use super::ActionModel;
 use super::ActionRequester;
 
 /// Action information returned by the API.
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct ActionInfoResponse {
     pub action: ActionModel,
     pub history: Vec<ActionHistoryItem>,
 }
 
 /// Parameters passed to the action scheduling API.
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct ActionScheduleRequest {
     /// Optional pre-generated action ID.
     ///
