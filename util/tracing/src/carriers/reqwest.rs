@@ -54,6 +54,7 @@ impl<'a> HeadersCarrier<'a> {
     }
 
     /// Inject a `SpanContext` into the given Iron headers.
+    #[allow(unknown_lints, clippy::result_large_err)]
     pub fn inject(context: &SpanContext, headers: &mut HeaderMap, tracer: &Tracer) -> OTResult<()> {
         let mut carrier = HeadersCarrier::new(headers);
         let format = InjectFormat::HttpHeaders(Box::new(&mut carrier));
@@ -62,6 +63,7 @@ impl<'a> HeadersCarrier<'a> {
     }
 
     /// Checks the headers for a span context and extract it if possible.
+    #[allow(unknown_lints, clippy::result_large_err)]
     pub fn extract(headers: &mut HeaderMap, tracer: &Tracer) -> OTResult<Option<SpanContext>> {
         let carrier = HeadersCarrier::new(headers);
         let format = ExtractFormat::HttpHeaders(Box::new(&carrier));
