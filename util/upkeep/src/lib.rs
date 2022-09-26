@@ -145,7 +145,10 @@ impl Upkeep {
             Some(sender) => sender,
             None => return Ok(()),
         };
-        let signals = vec![signal_hook::SIGINT, signal_hook::SIGTERM];
+        let signals = vec![
+            signal_hook::consts::signal::SIGINT,
+            signal_hook::consts::signal::SIGTERM,
+        ];
         for signal in signals.into_iter() {
             let signal_flag = Arc::clone(&self.signal_flag);
             let signal_sender = sender.clone();
@@ -156,7 +159,7 @@ impl Upkeep {
                 signal_flag.store(true, Ordering::Relaxed);
                 let _ = signal_sender.send(());
             };
-            let signal_id = unsafe { signal_hook::register(signal, callback) }?;
+            let signal_id = unsafe { signal_hook::low_level::register(signal, callback) }?;
             self.registered_signals.push(signal_id);
         }
         Ok(())
@@ -249,7 +252,7 @@ impl Default for Upkeep {
 impl Drop for Upkeep {
     fn drop(&mut self) {
         for signal in self.registered_signals.drain(..) {
-            signal_hook::unregister(signal);
+            signal_hook::low_level::unregister(signal);
         }
     }
 }

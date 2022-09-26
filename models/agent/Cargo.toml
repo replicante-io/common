@@ -1,8 +1,8 @@
 [package]
 name = "replicante_models_agent"
-version = "0.3.2"
+version = "0.3.3"
 authors = ["Stefano Pogliani <stefano@spogliani.net>"]
-edition = "2018"
+edition = "2021"
 
 description = "Replicante Agent API request/response models"
 documentation = "https://www.replicante.io/docs"
@@ -18,4 +18,4 @@ chrono = { version = "^0.4.7", features = ["serde"] }
 serde = "^1.0.34"
 serde_derive = "^1.0.34"
 serde_json = "^1.0.8"
-uuid = { version = "^0.8.0", features = ["serde", "v4"] }
+uuid = { version = "^1.1.2", features = ["serde", "v4"] }
