@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Changed
+- Remove `failure` and `replicante_utils_failure` dependency.
+- Updated dependencies.
+
+### Removed
+- **BREAKING** Previously deprecated `request_span` has been removed.
+- **BREAKING** The `sentry` module was removed in favour of `sentry-actix` crate.
 
 ## 0.2.1 - 2022-09-12
 ### Changed

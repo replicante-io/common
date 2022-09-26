@@ -3,16 +3,16 @@ use std::collections::HashMap;
 use actix_web::http::header::HeaderMap;
 use actix_web::http::header::HeaderName;
 use actix_web::http::header::HeaderValue;
-use failure::ResultExt;
-
+use anyhow::Context;
+use anyhow::Result;
 use opentracingrust::ExtractFormat;
 use opentracingrust::InjectFormat;
 use opentracingrust::MapCarrier;
 use opentracingrust::SpanContext;
 use opentracingrust::Tracer;
 
-use crate::ErrorKind;
-use crate::Result;
+use crate::errors::HttpError;
+use crate::errors::TracingContextError;
 
 /// Implement the MapCarrier trait for Iron's Headers.
 pub struct HeadersCarrier<'a> {
@@ -34,7 +34,7 @@ impl<'a> HeadersCarrier<'a> {
             let header = String::from(header.as_str());
             let value = value
                 .to_str()
-                .with_context(|_| ErrorKind::HeaderValue(header.clone()))?;
+                .with_context(|| HttpError::header_value_invalid(&header))?;
             let value = String::from(value);
             items.insert(header, value);
         }
@@ -60,7 +60,8 @@ impl<'a> HeadersCarrier<'a> {
         let format = InjectFormat::HttpHeaders(Box::new(&mut carrier));
         tracer
             .inject(context, format)
-            .map_err(|error| ErrorKind::ContextInject(format!("{:?}", error)))?;
+            .map_err(|error| anyhow::anyhow!(error.to_string()))
+            .context(TracingContextError::Inject)?;
         Ok(())
     }
 
@@ -70,7 +71,8 @@ impl<'a> HeadersCarrier<'a> {
         let format = ExtractFormat::HttpHeaders(Box::new(&carrier));
         let context = tracer
             .extract(format)
-            .map_err(|error| ErrorKind::ContextExtract(format!("{:?}", error)))?;
+            .map_err(|error| anyhow::anyhow!(error.to_string()))
+            .context(TracingContextError::Extract)?;
         Ok(context)
     }
 }
