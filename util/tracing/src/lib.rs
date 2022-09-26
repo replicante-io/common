@@ -1,6 +1,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 
+use anyhow::Result;
 use opentracingrust::Tracer;
 use slog::Logger;
 
@@ -12,10 +13,7 @@ mod config;
 mod error;
 
 pub use self::config::Config;
-pub use self::error::fail_span;
 pub use self::error::Error;
-pub use self::error::ErrorKind;
-pub use self::error::Result;
 
 /// Wrapper for easier optional `Tracer`s.
 #[derive(Clone)]

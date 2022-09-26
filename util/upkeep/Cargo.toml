@@ -19,8 +19,6 @@ humthreads = "^0.2.0"
 signal-hook = "^0.3.0"
 slog = "^2.4.1"
 
-replicante_util_failure = { version = "^0.1.3", path = "../failure" }
-
 
 [dev-dependencies]
 nix = "^0.25.0"
