@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Changed
+- Remove `replicante_utils_failure` dependency.
+- Updated dependencies.
 
 ## 0.4.1 - 2022-09-12
 ### Changed

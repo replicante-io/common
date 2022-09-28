@@ -1,20 +1,15 @@
-use std::task::Context;
-use std::task::Poll;
+use std::future::ready;
+use std::future::Ready;
 use std::time::Duration;
 use std::time::Instant;
 
-use actix_service::Service;
-use actix_service::Transform;
-use actix_web::dev::Factory;
+use actix_web::dev::forward_ready;
+use actix_web::dev::Service;
 use actix_web::dev::ServiceRequest;
 use actix_web::dev::ServiceResponse;
+use actix_web::dev::Transform;
 use actix_web::Error;
-use actix_web::HttpRequest;
 use actix_web::HttpResponse;
-use actix_web::Responder;
-use futures::future::ok;
-use futures::future::ready;
-use futures::future::Ready;
 use prometheus::CounterVec;
 use prometheus::Encoder;
 use prometheus::HistogramOpts;
@@ -76,31 +71,24 @@ pub struct MetricsExporter {
 }
 
 impl MetricsExporter {
-    pub fn factory(registry: Registry) -> MetricsExporter {
+    pub fn with_registry(registry: Registry) -> MetricsExporter {
         MetricsExporter { registry }
     }
 }
 
-impl Factory<(), Ready<MetricsExporter>, MetricsExporter> for MetricsExporter {
-    fn call(&self, _: ()) -> Ready<MetricsExporter> {
-        let registry = self.registry.clone();
-        ready(MetricsExporter { registry })
-    }
-}
+impl actix_web::Handler<()> for MetricsExporter {
+    type Output = HttpResponse;
+    type Future = Ready<Self::Output>;
 
-impl Responder for MetricsExporter {
-    type Error = Error;
-    type Future = Ready<Result<HttpResponse, Error>>;
-
-    fn respond_to(self, _: &HttpRequest) -> Self::Future {
+    fn call(&self, _: ()) -> Self::Future {
         let mut buffer = Vec::new();
         let encoder = TextEncoder::new();
-        let metric_familys = self.registry.gather();
-        encoder.encode(&metric_familys, &mut buffer).unwrap();
+        let metric_families = self.registry.gather();
+        encoder.encode(&metric_families, &mut buffer).unwrap();
         let response = HttpResponse::Ok()
-            .header(actix_web::http::header::CONTENT_TYPE, encoder.format_type())
+            .append_header((actix_web::http::header::CONTENT_TYPE, encoder.format_type()))
             .body(buffer);
-        ok(response)
+        ready(response)
     }
 }
 
@@ -117,13 +105,12 @@ impl MetricsMiddleware {
 
 // `S` - type of the next service
 // `B` - type of response's body
-impl<S, B> Transform<S> for MetricsMiddleware
+impl<S, B> Transform<S, ServiceRequest> for MetricsMiddleware
 where
-    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
     S::Future: 'static,
     B: 'static,
 {
-    type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
     type Error = Error;
     type InitError = ();
@@ -131,10 +118,10 @@ where
     type Future = Ready<Result<Self::Transform, Self::InitError>>;
 
     fn new_transform(&self, service: S) -> Self::Future {
-        ok(MiddlewareService {
+        ready(Ok(MiddlewareService {
             metrics: self.metrics.clone(),
             service,
-        })
+        }))
     }
 }
 
@@ -144,22 +131,19 @@ pub struct MiddlewareService<S> {
     service: S,
 }
 
-impl<S, B> Service for MiddlewareService<S>
+impl<S, B> Service<ServiceRequest> for MiddlewareService<S>
 where
-    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
     S::Future: 'static,
     B: 'static,
 {
-    type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
     type Error = Error;
-    type Future = crate::BoxedFuture<Self::Response, Self::Error>;
+    type Future = crate::LocalBoxFuture<'static, Result<Self::Response, Self::Error>>;
 
-    fn poll_ready(&mut self, ctx: &mut Context) -> Poll<Result<(), Self::Error>> {
-        self.service.poll_ready(ctx)
-    }
+    forward_ready!(service);
 
-    fn call(&mut self, req: ServiceRequest) -> Self::Future {
+    fn call(&self, req: ServiceRequest) -> Self::Future {
         let metrics = self.metrics.clone();
         let request_start = Instant::now();
         let response = self.service.call(req);
@@ -205,7 +189,7 @@ mod tests {
     #[actix_rt::test]
     async fn metrics_exporter_returns_200() {
         let registry = Registry::new();
-        let exporter = MetricsExporter::factory(registry);
+        let exporter = MetricsExporter::with_registry(registry);
         let service = web::resource("/").to(exporter);
         let mut app = init_service(App::new().service(service)).await;
         let request = TestRequest::with_uri("https://server:1234/").to_request();

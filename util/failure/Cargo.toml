@@ -1,6 +1,6 @@
 [package]
 name = "replicante_util_failure"
-version = "0.1.4"
+version = "0.1.5"
 authors = ["Stefano Pogliani <stefano@spogliani.net>"]
 edition = "2018"
 
@@ -11,6 +11,10 @@ repository = "https://github.com/replicante-io/common"
 readme = "../../README.md"
 keywords = ["replicante", "utility", "failure"]
 license = "MIT"
+
+
+[badges.maintaince]
+status = "deprecated"
 
 
 [dependencies]

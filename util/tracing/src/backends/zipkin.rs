@@ -1,7 +1,8 @@
 use std::str::FromStr;
 use std::time::Duration;
 
-use failure::ResultExt;
+use anyhow::Context;
+use anyhow::Result;
 use humthreads::Builder;
 use humthreads::ThreadScope;
 use opentracingrust::FinishedSpan;
@@ -10,15 +11,12 @@ use opentracingrust_zipkin::HttpCollector;
 use opentracingrust_zipkin::HttpCollectorOpts;
 use opentracingrust_zipkin::ZipkinEndpoint;
 use opentracingrust_zipkin::ZipkinTracer;
+use slog::error;
 use slog::Logger;
 
-use replicante_util_failure::capture_fail;
-use replicante_util_failure::failure_info;
-
 use crate::config::ZipkinConfig;
-use crate::ErrorKind;
+use crate::Error;
 use crate::Opts;
-use crate::Result;
 
 /// Creates a zipkin tracer that sends spans over kafka.
 pub fn zipkin(config: ZipkinConfig, opts: Opts) -> Result<Tracer> {
@@ -29,18 +27,20 @@ pub fn zipkin(config: ZipkinConfig, opts: Opts) -> Result<Tracer> {
         ZipkinConfig::Http(config) => {
             let mut headers = reqwest::header::HeaderMap::new();
             for (key, value) in config.headers.into_iter() {
-                let key = reqwest::header::HeaderName::from_str(&key).with_context(|_| {
-                    ErrorKind::Config(format!(
+                let key = reqwest::header::HeaderName::from_str(&key).with_context(|| {
+                    Error::Config(format!(
                         "invalid header name '{}' for Zipkin's HTTP transport",
                         key
                     ))
                 })?;
-                let value = reqwest::header::HeaderValue::from_str(&value).with_context(|_| {
-                    ErrorKind::Config(format!(
-                        "invalid header value '{}' for Zipkin's HTTP transport",
-                        value
-                    ))
-                })?;
+                let value = reqwest::header::HeaderValue::from_str(&value)
+                    .map_err(failure::Fail::compat)
+                    .with_context(|| {
+                        Error::Config(format!(
+                            "invalid header value '{}' for Zipkin's HTTP transport",
+                            value
+                        ))
+                    })?;
                 headers.insert(key, value);
             }
             let options = HttpCollectorOpts::new(config.url.as_str(), endpoint)
@@ -69,12 +69,11 @@ pub fn zipkin(config: ZipkinConfig, opts: Opts) -> Result<Tracer> {
                     Ok(span) => Some(span),
                     Err(error) if error.is_timeout() => None,
                     Err(error) => {
-                        capture_fail!(
-                            &error,
+                        error!(
                             logger,
                             "Error receiving distributed tracing span";
                             "tracer" => "zipkin",
-                            failure_info(&error),
+                            "error" => %error,
                         );
                         // Shutdown the reporter thread, which in turn will terminate the process.
                         break;
@@ -83,7 +82,8 @@ pub fn zipkin(config: ZipkinConfig, opts: Opts) -> Result<Tracer> {
                 zipkin_process(&scope, &logger, &mut collector, span);
             }
         })
-        .with_context(|_| ErrorKind::ThreadSpawn("span collector"))?;
+        .map_err(failure::Fail::compat)
+        .with_context(|| Error::ThreadSpawn("span collector"))?;
     opts.upkeep.register_thread(thread);
     Ok(tracer)
 }
@@ -102,13 +102,12 @@ fn zipkin_process(
                 collector.collect(span);
             }
             if let Err(error) = collector.lazy_flush() {
-                capture_fail!(
-                    &error,
+                error!(
                     logger,
                     "Error collecting distributed tracer span";
                     "collector" => "http",
                     "tracer" => "zipkin",
-                    failure_info(&error),
+                    "error" => %error,
                 );
             }
         }

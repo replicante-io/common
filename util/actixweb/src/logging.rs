@@ -1,13 +1,12 @@
-use std::task::Context;
-use std::task::Poll;
+use std::future::ready;
+use std::future::Ready;
 
-use actix_service::Service;
-use actix_service::Transform;
+use actix_web::dev::forward_ready;
+use actix_web::dev::Service;
 use actix_web::dev::ServiceRequest;
 use actix_web::dev::ServiceResponse;
+use actix_web::dev::Transform;
 use actix_web::Error;
-use futures::future::ok;
-use futures::future::Ready;
 use slog::info;
 use slog::Logger;
 
@@ -24,13 +23,12 @@ impl LoggingMiddleware {
 
 // `S` - type of the next service
 // `B` - type of response's body
-impl<S, B> Transform<S> for LoggingMiddleware
+impl<S, B> Transform<S, ServiceRequest> for LoggingMiddleware
 where
-    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
     S::Future: 'static,
     B: 'static,
 {
-    type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
     type Error = Error;
     type InitError = ();
@@ -38,10 +36,10 @@ where
     type Future = Ready<Result<Self::Transform, Self::InitError>>;
 
     fn new_transform(&self, service: S) -> Self::Future {
-        ok(MiddlewareService {
+        ready(Ok(MiddlewareService {
             logger: self.logger.clone(),
             service,
-        })
+        }))
     }
 }
 
@@ -51,22 +49,19 @@ pub struct MiddlewareService<S> {
     service: S,
 }
 
-impl<S, B> Service for MiddlewareService<S>
+impl<S, B> Service<ServiceRequest> for MiddlewareService<S>
 where
-    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
     S::Future: 'static,
     B: 'static,
 {
-    type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
     type Error = Error;
-    type Future = crate::BoxedFuture<Self::Response, Self::Error>;
+    type Future = crate::LocalBoxFuture<'static, Result<Self::Response, Self::Error>>;
 
-    fn poll_ready(&mut self, ctx: &mut Context) -> Poll<Result<(), Self::Error>> {
-        self.service.poll_ready(ctx)
-    }
+    forward_ready!(service);
 
-    fn call(&mut self, req: ServiceRequest) -> Self::Future {
+    fn call(&self, req: ServiceRequest) -> Self::Future {
         let logger = self.logger.clone();
         let response = self.service.call(req);
         Box::pin(async move {

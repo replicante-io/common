@@ -1,36 +1,24 @@
+use std::future::ready;
+use std::future::Ready;
+use std::result::Result;
 use std::sync::Arc;
-use std::task::Context;
-use std::task::Poll;
 
-use actix_service::Service;
-use actix_service::Transform;
-use actix_web::dev::Extensions;
+use actix_web::dev::forward_ready;
+use actix_web::dev::Service;
 use actix_web::dev::ServiceRequest;
 use actix_web::dev::ServiceResponse;
+use actix_web::dev::Transform;
 use actix_web::Error;
+use actix_web::HttpMessage;
 use actix_web::HttpRequest;
-use futures::future::ok;
-use futures::future::Ready;
 use opentracingrust::Span;
 use opentracingrust::Tracer;
+use slog::error;
 use slog::Logger;
-
-use replicante_util_failure::capture_fail;
-use replicante_util_failure::failure_info;
 
 mod carriers;
 
 pub use self::carriers::HeadersCarrier;
-
-/// Access the request's tracing span.
-#[deprecated(
-    since = "0.2.0",
-    note = "use replicante_util_actixweb::with_request_span"
-)]
-pub fn request_span(req: &mut Extensions) -> &mut Span {
-    req.get_mut::<Span>()
-        .expect("request is missing Span extention")
-}
 
 /// Access the request's tracing span.
 pub fn with_request_span<B, R>(request: &mut HttpRequest, block: B) -> R
@@ -75,13 +63,12 @@ impl TracingMiddleware {
 
 // `S` - type of the next service
 // `B` - type of response's body
-impl<S, B> Transform<S> for TracingMiddleware
+impl<S, B> Transform<S, ServiceRequest> for TracingMiddleware
 where
-    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
     S::Future: 'static,
     B: 'static,
 {
-    type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
     type Error = Error;
     type InitError = ();
@@ -89,12 +76,12 @@ where
     type Future = Ready<Result<Self::Transform, Self::InitError>>;
 
     fn new_transform(&self, service: S) -> Self::Future {
-        ok(MiddlewareService {
+        ready(Ok(MiddlewareService {
             logger: self.logger.clone(),
             name: self.name.clone(),
             service,
             tracer: Arc::clone(&self.tracer),
-        })
+        }))
     }
 }
 
@@ -106,22 +93,19 @@ pub struct MiddlewareService<S> {
     tracer: Arc<Tracer>,
 }
 
-impl<S, B> Service for MiddlewareService<S>
+impl<S, B> Service<ServiceRequest> for MiddlewareService<S>
 where
-    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
     S::Future: 'static,
     B: 'static,
 {
-    type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
     type Error = Error;
-    type Future = crate::BoxedFuture<Self::Response, Self::Error>;
+    type Future = crate::LocalBoxFuture<'static, Result<Self::Response, Self::Error>>;
 
-    fn poll_ready(&mut self, ctx: &mut Context) -> Poll<Result<(), Self::Error>> {
-        self.service.poll_ready(ctx)
-    }
+    forward_ready!(service);
 
-    fn call(&mut self, mut req: ServiceRequest) -> Self::Future {
+    fn call(&self, mut req: ServiceRequest) -> Self::Future {
         let logger = self.logger.clone();
         let name = match self.name.as_ref() {
             None => req.path(),
@@ -134,11 +118,12 @@ where
             Ok(Some(context)) => span.child_of(context),
             Ok(None) => (),
             Err(error) => {
-                capture_fail!(
-                    &error,
+                let error = anyhow::anyhow!(error);
+                sentry::integrations::anyhow::capture_anyhow(&error);
+                error!(
                     logger,
                     "Unable to extract trace context from request headers";
-                    failure_info(&error),
+                    "error" => %error,
                 );
             }
         };
@@ -150,7 +135,7 @@ where
 
         // Send the request and handle the span on response.
         let tracer = self.tracer.clone();
-        req.head_mut().extensions_mut().insert(span);
+        req.extensions_mut().insert(span);
         let response = self.service.call(req);
         Box::pin(async move {
             let mut response = response.await?;
@@ -162,21 +147,22 @@ where
                     &tracer,
                 );
                 if let Err(error) = result {
-                    capture_fail!(
-                        &error,
+                    let error = anyhow::anyhow!(error);
+                    sentry::integrations::anyhow::capture_anyhow(&error);
+                    error!(
                         logger,
                         "Failed to inject trace context into response headers";
-                        failure_info(&error),
+                        "error" => %error,
                     );
                 }
 
                 if let Err(error) = span.finish() {
-                    let error = failure::SyncFailure::new(error);
-                    capture_fail!(
-                        &error,
+                    let error = anyhow::anyhow!(error.to_string());
+                    sentry::integrations::anyhow::capture_anyhow(&error);
+                    error!(
                         logger,
                         "Failed to finish request tracing span";
-                        failure_info(&error),
+                        "error" => %error,
                     );
                 }
             }

@@ -11,13 +11,11 @@ use humthreads::MapThread;
 use humthreads::Thread;
 use signal_hook::SigId;
 use slog::debug;
+use slog::error;
 use slog::o;
 use slog::warn;
 use slog::Discard;
 use slog::Logger;
-
-use replicante_util_failure::capture_fail;
-use replicante_util_failure::failure_info;
 
 /// Block the calling thread until shutdown is requested.
 ///
@@ -95,15 +93,14 @@ impl Upkeep {
                 }
                 n => {
                     let thread = &self.threads[n - 1];
-                    let paniced = match thread.handle.join() {
+                    let panicked = match thread.handle.join() {
                         Ok(()) => false,
                         Err(error) => match error.kind() {
                             HumthreadsErrorKind::Join(_) => {
-                                capture_fail!(
-                                    &error,
+                                error!(
                                     self.logger,
-                                    "Thread paniced";
-                                    failure_info(&error),
+                                    "Thread panicked";
+                                    "error" => error.to_string(),
                                 );
                                 clean_exit = false;
                                 true
@@ -111,8 +108,8 @@ impl Upkeep {
                             _ => false,
                         },
                     };
-                    if paniced {
-                        warn!(self.logger, "Shutdown: thread paniced");
+                    if panicked {
+                        warn!(self.logger, "Shutdown: thread panicked");
                         break;
                     }
                     if thread.required {
@@ -145,7 +142,10 @@ impl Upkeep {
             Some(sender) => sender,
             None => return Ok(()),
         };
-        let signals = vec![signal_hook::SIGINT, signal_hook::SIGTERM];
+        let signals = vec![
+            signal_hook::consts::signal::SIGINT,
+            signal_hook::consts::signal::SIGTERM,
+        ];
         for signal in signals.into_iter() {
             let signal_flag = Arc::clone(&self.signal_flag);
             let signal_sender = sender.clone();
@@ -156,7 +156,7 @@ impl Upkeep {
                 signal_flag.store(true, Ordering::Relaxed);
                 let _ = signal_sender.send(());
             };
-            let signal_id = unsafe { signal_hook::register(signal, callback) }?;
+            let signal_id = unsafe { signal_hook::low_level::register(signal, callback) }?;
             self.registered_signals.push(signal_id);
         }
         Ok(())
@@ -205,7 +205,11 @@ impl Upkeep {
                     debug!(self.logger, "Joined thread twice");
                     continue;
                 }
-                capture_fail!(&error, self.logger, "Thread paniced"; failure_info(&error));
+                error!(
+                    self.logger,
+                    "Thread panicked";
+                    "error" => error.to_string(),
+                );
                 clean_exit = false;
             }
         }
@@ -249,7 +253,7 @@ impl Default for Upkeep {
 impl Drop for Upkeep {
     fn drop(&mut self) {
         for signal in self.registered_signals.drain(..) {
-            signal_hook::unregister(signal);
+            signal_hook::low_level::unregister(signal);
         }
     }
 }

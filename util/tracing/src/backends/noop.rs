@@ -1,12 +1,10 @@
-use failure::ResultExt;
+use anyhow::Context;
 use humthreads::Builder;
 use opentracingrust::tracers::NoopTracer;
 use opentracingrust::Tracer;
+use slog::error;
 
-use replicante_util_failure::capture_fail;
-use replicante_util_failure::failure_info;
-
-use crate::ErrorKind;
+use crate::Error;
 use crate::Opts;
 use crate::Result;
 
@@ -24,12 +22,11 @@ pub fn noop(opts: Opts) -> Result<Tracer> {
                     Ok(_) => (),
                     Err(error) if error.is_timeout() => (),
                     Err(error) => {
-                        capture_fail!(
-                            &error,
+                        error!(
                             logger,
                             "Error receiving distributed tracing span";
                             "tracer" => "noop",
-                            failure_info(&error),
+                            "error" => %error,
                         );
                         // Shutdown the reporter thread, which in turn will terminate the process.
                         break;
@@ -37,7 +34,8 @@ pub fn noop(opts: Opts) -> Result<Tracer> {
                 };
             }
         })
-        .with_context(|_| ErrorKind::ThreadSpawn("span collector"))?;
+        .map_err(failure::Fail::compat)
+        .with_context(|| Error::ThreadSpawn("span collector"))?;
     opts.upkeep.register_thread(thread);
     Ok(tracer)
 }

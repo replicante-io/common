@@ -82,7 +82,7 @@ mod tests {
         fn serialise() {
             let config = Config::Noop;
             let text = serde_yaml::to_string(&config).unwrap();
-            assert_eq!(text, "---\nbackend: noop\n");
+            assert_eq!(text, "backend: noop\n");
         }
     }
 
@@ -154,15 +154,14 @@ options:
             let text = serde_yaml::to_string(&config).unwrap();
             assert_eq!(
                 text,
-                r#"---
-backend: zipkin
+                r#"backend: zipkin
 options:
   transport: http
   options:
     flush_count: 100
-    flush_timeout_millis: ~
+    flush_timeout_millis: null
     headers: {}
-    url: "http://localhost:1234"
+    url: http://localhost:1234
 "#
             );
         }
