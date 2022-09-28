@@ -13,6 +13,7 @@ mod config;
 mod error;
 
 pub use self::config::Config;
+pub use self::error::fail_span;
 pub use self::error::Error;
 
 /// Wrapper for easier optional `Tracer`s.
