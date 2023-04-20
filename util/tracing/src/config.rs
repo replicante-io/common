@@ -4,13 +4,14 @@ use serde::Deserialize;
 use serde::Serialize;
 
 /// Supported tracing backends and their configuration.
-#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+#[derive(Clone, Default, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 #[serde(tag = "backend", content = "options")]
 pub enum Config {
     /// The `Noop` tracer (default).
     ///
     /// A tracer that discards all spans.
     /// Used when integration with distributed tracing is not needed.
+    #[default]
     #[serde(rename = "noop")]
     Noop,
 
@@ -22,12 +23,6 @@ pub enum Config {
     /// [Zipkin]: https://zipkin.io/
     #[serde(rename = "zipkin")]
     Zipkin(ZipkinConfig),
-}
-
-impl Default for Config {
-    fn default() -> Config {
-        Config::Noop
-    }
 }
 
 /// Zipkin specific configuration options.

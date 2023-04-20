@@ -84,11 +84,11 @@ pub trait RootDescriptor {
             "" | "/" => web::resource(self.prefix()),
             path if path.starts_with('/') => {
                 let path = format!("{}{}", self.prefix(), path);
-                web::resource(&path)
+                web::resource(path)
             }
             path => {
                 let path = format!("{}/{}", self.prefix(), path);
-                web::resource(&path)
+                web::resource(path)
             }
         }
     }
