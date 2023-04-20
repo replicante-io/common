@@ -18,7 +18,7 @@ jobs:
         rust:
           - stable   # Version of rust we aim to use.
           - nightly  # Preview errors early on.
-          - 1.59.0   # Earliest version of rust supported.
+          - 1.63.0   # Earliest version of rust supported.
     continue-on-error: ${{ matrix.rust == 'nightly' }}
     steps:
       - uses: actions/checkout@v2

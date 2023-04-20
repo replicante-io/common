@@ -68,7 +68,7 @@ impl Config {
 }
 
 /// List of supported logging backends.
-#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
+#[derive(Clone, Default, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
 #[serde(tag = "name", content = "options")]
 pub enum LoggingBackend {
     /// Log objects to systemd journal (journald).
@@ -77,22 +77,19 @@ pub enum LoggingBackend {
     Journald,
 
     /// Log JSON objects to standard output.
+    #[default]
     #[serde(rename = "json")]
     Json,
 }
 
-impl Default for LoggingBackend {
-    fn default() -> LoggingBackend {
-        LoggingBackend::Json
-    }
-}
-
 /// Possible logging levels.
-#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
+#[derive(Clone, Default, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
 pub enum LoggingLevel {
+    #[cfg_attr(debug_assertions, default)]
     #[serde(rename = "debug")]
     Debug = 1,
 
+    #[cfg_attr(not(debug_assertions), default)]
     #[serde(rename = "info")]
     Info = 2,
 
@@ -104,18 +101,6 @@ pub enum LoggingLevel {
 
     #[serde(rename = "critical")]
     Critical = 5,
-}
-
-impl Default for LoggingLevel {
-    #[cfg(debug_assertions)]
-    fn default() -> LoggingLevel {
-        LoggingLevel::Debug
-    }
-
-    #[cfg(not(debug_assertions))]
-    fn default() -> LoggingLevel {
-        LoggingLevel::Info
-    }
 }
 
 impl From<LoggingLevel> for ::slog::Level {
