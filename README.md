@@ -1,5 +1,10 @@
 # Replicante Common Crates
 
+> :warning:
+>
+> This repository is deprecated.
+> Shared logic is being migrated to SDK style crates like replisdk.
+
 A collection of crates shared by [replicante](https://replicante.io)'s workspaces.
 
 ## Usage
